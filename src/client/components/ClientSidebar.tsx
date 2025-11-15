@@ -20,26 +20,20 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/auth/store/auth.store";
 
+const items = [
+   { title: "Inicio", url: '/client', icon: LayoutDashboard },
+   { title: "Productos", url: `/client/productos`, icon: ShoppingBag },
+   { title: "Pedidos", url: `/client/pedidos`, icon: Package },
+   { title: "Pagos", url: `/client/pagos`, icon: CreditCard },
+];
+
 export const ClientSidebar = () => {
    const { open } = useSidebar();
    const location = useLocation();
    const navigate = useNavigate();
 
-   const { logout } = useAuthStore();
+   const { logout, user } = useAuthStore();
 
-   const items = [
-      { title: "Inicio", url: '/client', icon: LayoutDashboard },
-      { title: "Productos", url: `/client/productos`, icon: ShoppingBag },
-      { title: "Pedidos", url: `/client/pedidos`, icon: Package },
-      { title: "Pagos", url: `/client/pagos`, icon: CreditCard },
-   ];
-
-   const userData = {
-      name: "Cliente Usuario",
-      email: "cliente@correo.com",
-      role: "Cliente",
-      initials: "CU"
-   };
 
    const handleLogout = () => {
       logout();
@@ -85,13 +79,13 @@ export const ClientSidebar = () => {
                <div className={`flex items-center gap-2 sm:gap-3 ${!open ? "justify-center" : ""}`}>
                   <Avatar className="h-8 w-8 shrink-0">
                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {userData.initials}
+                        {user?.name.substring(0, 2).toUpperCase()}
                      </AvatarFallback>
                   </Avatar>
                   {open && (
                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-foreground truncate">{userData.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userData.email}</p>
+                        <p className="text-xs sm:text-sm font-medium text-foreground truncate">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                      </div>
                   )}
                </div>

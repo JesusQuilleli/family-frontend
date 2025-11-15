@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
-      authStatus: "not-authenticated",
+      authStatus: "checking",
       role: null,
 
       isAdmin: () => {
@@ -117,6 +117,7 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuthStatus: async () => {
         const token = localStorage.getItem("token");
+
         if (!token) {
           set(
             { user: null, token: null, authStatus: "not-authenticated", role: null },
@@ -125,6 +126,8 @@ export const useAuthStore = create<AuthState>()(
           );
           return false;
         }
+
+        set({ authStatus: "checking" }, false, "checkAuthStatus_start"); // 👈 Añade esto
 
         try {
           const { user, token: newToken } = await checkAuthAction();
@@ -141,8 +144,6 @@ export const useAuthStore = create<AuthState>()(
             false,
             "checkAuthStatus_success"
           );
-
-          
 
           return true;
         } catch (error: unknown) {

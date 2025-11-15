@@ -7,8 +7,11 @@ import { useState } from "react";
 import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoading";
 import { toast } from "sonner";
 import { useAuthStore } from "@/auth/store/auth.store";
+import { useAuthRedirect } from "@/auth/hook/useAuth";
 
 export const LoginPage = () => {
+
+  useAuthRedirect();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,9 +37,9 @@ export const LoginPage = () => {
           typeof result.msg === "string"
             ? result.msg
             : (result.msg && typeof result.msg === "object" && "message" in result.msg)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ? String((result.msg as any).message)
-            : "Error en el inicio de sesión";
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ? String((result.msg as any).message)
+              : "Error en el inicio de sesión";
 
         toast.error(errorMsg);
         return;

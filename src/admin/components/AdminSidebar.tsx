@@ -25,7 +25,7 @@ export const AdminSidebar = () => {
    const location = useLocation();
    const navigate = useNavigate();
 
-   const { logout } = useAuthStore();
+   const { logout, user } = useAuthStore();
 
    const items = [
       { title: "Inicio", url: '/admin', icon: LayoutDashboard },
@@ -33,13 +33,6 @@ export const AdminSidebar = () => {
       { title: "Pedidos", url: `/admin/pedidos`, icon: Package },
       { title: "Pagos", url: `/admin/pagos`, icon: CreditCard },
    ];
-
-   const userData = {
-      name: "Admin Usuario",
-      email: "admin@correo.com",
-      role: "Administrador",
-      initials: "AU"
-   };
 
    const handleLogout = () => {
       logout();
@@ -85,13 +78,13 @@ export const AdminSidebar = () => {
                <div className={`flex items-center gap-2 sm:gap-3 ${!open ? "justify-center" : ""}`}>
                   <Avatar className="h-8 w-8 shrink-0">
                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {userData.initials}
+                        {user?.name.substring(0, 2).toUpperCase()}
                      </AvatarFallback>
                   </Avatar>
                   {open && (
                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-foreground truncate">{userData.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userData.email}</p>
+                        <p className="text-xs sm:text-sm font-medium text-foreground truncate">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                      </div>
                   )}
                </div>

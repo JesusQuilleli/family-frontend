@@ -10,7 +10,7 @@ import { HomePageAdmin } from "./admin/pages/home/HomePageAdmin";
 import { ProtectedRouteAdmin, ProtectedRouteClient } from "./components/routes/ProtectedRoute";
 import { AdminProductsPage } from "./admin/pages/products/AdminProductsPage";
 import { AdminOrdersPage } from "./admin/pages/orders/AdminOrdersPage";
-import { AdminPaymentsPage } from "./admin/pages/Payments/AdminPaymentsPage";
+import { AdminPaymentsPage } from "./admin/pages/payments/AdminPaymentsPage";
 import { ClientProductsPage } from "./client/pages/products/ClientProductsPage";
 import { ClientOrdersPage } from "./client/pages/orders/ClientOrdersPage";
 import { ClientPaymentsPage } from "./client/pages/payments/ClientPaymentsPage";

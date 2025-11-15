@@ -7,9 +7,12 @@ import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "@/auth/store/auth.store";
 import { useState } from "react";
 import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoading";
+import { useAuthRedirect } from "@/auth/hook/useAuth";
 
 
 export const RegisterPage = () => {
+
+  useAuthRedirect();
 
   const [isLoading, setIsLoading] = useState(false);
 
