@@ -98,6 +98,14 @@ export const LoginPage = () => {
                     className="transition-all duration-200 focus:scale-[1.01]"
                   />
                 </div>
+                <div className="flex justify-end">
+                  <Link
+                    to="/auth/forgot-password"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
                 <Button
                   type="submit"
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 cursor-pointer"

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ProductBackend } from '@/types/products.interfaces';
@@ -28,11 +27,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { useCategories } from '@/hooks/useCategories';
-import { Loader2, X } from 'lucide-react';
-import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ImageUpload } from '@/components/common/ImageUpload';
 
 interface ProductDialogProps {
   open: boolean;
@@ -47,7 +46,6 @@ export const ProductDialog = ({
   onSave,
   editProduct,
 }: ProductDialogProps) => {
-  const [imagePreview, setImagePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: categoriesData, isLoading: loadingCategories } = useCategories();
 
@@ -56,9 +54,9 @@ export const ProductDialog = ({
     defaultValues: {
       name: '',
       description: '',
-      purchase_price: 0,
-      sale_price: 0,
-      stock: 0,
+      purchase_price: '0',
+      sale_price: '0',
+      stock: '0',
       category_id: '',
     },
   });
@@ -74,44 +72,23 @@ export const ProductDialog = ({
         form.reset({
           name: editProduct.name || '',
           description: editProduct.description || '',
-          purchase_price: editProduct.purchase_price || 0,
-          sale_price: editProduct.sale_price || 0,
-          stock: editProduct.stock || 0,
+          purchase_price: editProduct.purchase_price?.toString() || '0',
+          sale_price: editProduct.sale_price?.toString() || '0',
+          stock: editProduct.stock?.toString() || '0',
           category_id: categoryId,
         });
-        setImagePreview(editProduct.image || '');
       } else {
         form.reset({
           name: '',
           description: '',
-          purchase_price: 0,
-          sale_price: 0,
-          stock: 0,
+          purchase_price: '0',
+          sale_price: '0',
+          stock: '0',
           category_id: '',
         });
-        setImagePreview('');
       }
     }
   }, [open, editProduct, form]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Crear preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    form.setValue('image', undefined);
-    setImagePreview('');
-    const fileInput = document.getElementById('image') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
-  };
 
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
@@ -133,7 +110,6 @@ export const ProductDialog = ({
 
       await onSave(formData);
       form.reset();
-      setImagePreview('');
     } catch (error) {
       console.error('Error al guardar producto:', error);
     } finally {
@@ -319,48 +295,21 @@ export const ProductDialog = ({
               <FormField
                 control={form.control}
                 name="image"
-                render={({ field: { onChange, value, ...field } }) => (
+                render={({ field: { onChange } }) => (
                   <FormItem>
-                    <FormLabel>Imagen del producto</FormLabel>
                     <FormControl>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="image"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              onChange(e.target.files);
-                              handleImageChange(e);
-                            }}
-                            {...field}
-                            className="cursor-pointer"
-                          />
-                          {imagePreview && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={removeImage}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                        {imagePreview && (
-                          <div className="relative w-32 h-32 rounded-md border overflow-hidden">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
+                      <ImageUpload
+                        value={editProduct?.image}
+                        onFileSelect={(file) => {
+                          // Si hay archivo, lo asignamos al array que espera zod/backend
+                          if (file) {
+                            onChange([file]);
+                          } else {
+                            onChange(undefined);
+                          }
+                        }}
+                      />
                     </FormControl>
-                    <FormDescription>
-                      Formatos: JPG, PNG, WEBP. Máximo 5MB
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

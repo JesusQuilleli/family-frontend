@@ -5,14 +5,16 @@ export const registerAction = async (
    fullName: string,
    email: string,
    password: string,
-   phone: string
+   phone: string,
+   referralCode?: string
 ): Promise<UserResponse> => {
    try {
       const { data } = await FamilyApi.post<UserResponse>("/auth/new/", {
          name: fullName,
          email,
          password,
-         phone
+         phone,
+         referralCode
       });
 
       return data;

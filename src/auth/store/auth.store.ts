@@ -24,7 +24,8 @@ type AuthState = {
     fullName: string,
     email: string,
     password: string,
-    phone: string
+    phone: string,
+    referralCode?: string
   ) => Promise<RegisterResponse>;
 
   logout: () => void;
@@ -44,9 +45,9 @@ export const useAuthStore = create<AuthState>()(
         return roles.includes("admin");
       },
 
-      register: async (fullName, email, password, phone) => {
+      register: async (fullName, email, password, phone, referralCode) => {
         try {
-          const data = await registerAction(fullName, email, password, phone);
+          const data = await registerAction(fullName, email, password, phone, referralCode);
           localStorage.setItem("token", data.token ?? "");
 
           set(

@@ -1,4 +1,10 @@
+// Libraries and Types
 import type { ProductBackend } from '@/types/products.interfaces';
+
+//Hooks
+import { useAuthStore } from '@/auth/store/auth.store';
+
+//Components
 import {
   Dialog,
   DialogContent,
@@ -8,9 +14,15 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Minus, Package, Tag, DollarSign } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { useAuthStore } from '@/auth/store/auth.store';
+
+//Icons
+import { ShoppingCart, Minus, Package, Tag } from 'lucide-react';
+
+//Helpers
+import { PriceDisplay } from '@/components/common/PriceDisplay';
+import { getImageUrl } from '@/helpers/get-image-url';
+
 
 interface ProductDetailDialogProps {
   open: boolean;
@@ -19,6 +31,7 @@ interface ProductDetailDialogProps {
   inCart: boolean;
   onAddToCart?: (product: ProductBackend) => void;
   onRemoveFromCart?: (id: string) => void;
+  userRole?: string;
 }
 
 export const ProductDetailDialog = ({
@@ -28,9 +41,11 @@ export const ProductDetailDialog = ({
   inCart,
   onAddToCart,
   onRemoveFromCart,
+  userRole,
 }: ProductDetailDialogProps) => {
 
   const { user } = useAuthStore();
+  const role = userRole || user?.role;
 
   if (!product) return null;
 
@@ -46,12 +61,13 @@ export const ProductDetailDialog = ({
           {/* Image Section */}
           <div className="space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+
               <img
-                src={product.image || '/placeholder-product.png'}
+                src={getImageUrl(product.image)}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = '/placeholder-product.png';
+                  e.currentTarget.src = '/not-image.jpg';
                 }}
               />
             </div>
@@ -65,7 +81,7 @@ export const ProductDetailDialog = ({
                 className="text-sm"
               >
                 <Package className="w-3 h-3 mr-1" />
-                Stock: {product.stock}
+                cantidad: {product.stock}
               </Badge>
             </div>
           </div>
@@ -94,42 +110,62 @@ export const ProductDetailDialog = ({
                     {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
                   </span>
                 </div>
-                {user?.role === 'admin' && (
+
+                {role === 'cliente' && (
                   <>
                     <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-muted-foreground">Precio de Compra</span>
-                      <span className="font-medium">${product.purchase_price.toFixed(2)}</span>
+                      <span className="text-muted-foreground">Precio</span>
+                      <PriceDisplay price={product.sale_price} className="items-end" />
+                    </div>
+                  </>)
+                }
+
+                {role === 'admin' && (
+                  <>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Precio de Compra Unid.</span>
+                      <PriceDisplay price={product.purchase_price} className="items-end" />
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-muted-foreground">Ganancia</span>
-                      <span className="font-medium text-green-600">
-                        ${(product.sale_price - product.purchase_price).toFixed(2)}
-                      </span>
+                      <span className="text-muted-foreground">Precio de Venta Unid.</span>
+                      <PriceDisplay price={product.sale_price} className="items-end" />
                     </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Inv (invertido)</span>
+                      <PriceDisplay price={product.purchase_price * product.stock} className="items-end" />
+                    </div>
+
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">VnT (venta)</span>
+                      <PriceDisplay price={product.sale_price * product.stock} className="items-end" />
+                    </div>
+
                   </>
                 )}
               </div>
             </div>
 
-            <Separator />
-
             <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <DollarSign className="w-6 h-6 text-primary" />
-                  <span className="text-3xl font-bold text-primary">
-                    ${product.sale_price.toFixed(2)}
-                  </span>
-                  <span className="text-muted-foreground">USD</span>
-                </div>
-                {user?.role === 'admin' && (
-                  <p className="text-sm text-muted-foreground">
-                    Margen: {(((product.sale_price - product.purchase_price) / product.purchase_price) * 100).toFixed(0)}%
-                  </p>
-                )}
-              </div>
 
-              {user?.role === 'cliente' && (
+              {role === 'admin' && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Ganancia Estimada</span>
+                    <span className="font-medium text-green-600 text-2xl">
+                      {((product.sale_price * product.stock) - (product.purchase_price * product.stock)).toFixed(0)}$
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Margen de Ganacia</span>
+                    <span className="font-medium text-green-600 text-2xl">
+                      {(((product.sale_price - product.purchase_price) / product.purchase_price) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {role === 'cliente' && (
                 <>
                   {inCart ? (
                     <Button

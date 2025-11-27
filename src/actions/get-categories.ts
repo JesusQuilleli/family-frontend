@@ -13,9 +13,9 @@ interface CategoriesResponse {
   categories: Category[];
 }
 
-export const getCategoriesAction = async (): Promise<CategoriesResponse> => {
+export const getCategoriesAction = async (query: string = ""): Promise<CategoriesResponse> => {
   try {
-    const { data } = await FamilyApi.get<CategoriesResponse>("/categories");
+    const { data } = await FamilyApi.get<CategoriesResponse>(`/categories?query=${query}`);
     return data;
   } catch (error) {
     console.error("Error al obtener categorías:", error);

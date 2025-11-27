@@ -10,5 +10,5 @@ export interface User {
    name: string;
    email?: string
    role: string;
-   adminAsociado: null;
+   adminAsociado: { uid: string; name: string } | null;
 }

@@ -9,7 +9,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop',
       category: 'Electrónica',
       stock: 15,
-      createdAt: '2024-01-15',
    },
    {
       id: '2',
@@ -19,7 +18,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=500&h=500&fit=crop',
       category: 'Accesorios',
       stock: 50,
-      createdAt: '2024-01-16',
    },
    {
       id: '3',
@@ -29,7 +27,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&h=500&fit=crop',
       category: 'Accesorios',
       stock: 30,
-      createdAt: '2024-01-17',
    },
    {
       id: '4',
@@ -39,7 +36,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&h=500&fit=crop',
       category: 'Monitores',
       stock: 12,
-      createdAt: '2024-01-18',
    },
    {
       id: '5',
@@ -49,7 +45,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&h=500&fit=crop',
       category: 'Audio',
       stock: 25,
-      createdAt: '2024-01-19',
    },
    {
       id: '6',
@@ -59,7 +54,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1585792180666-f7347c490ee2?w=500&h=500&fit=crop',
       category: 'Accesorios',
       stock: 40,
-      createdAt: '2024-01-20',
    },
    {
       id: '7',
@@ -69,7 +63,6 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=500&h=500&fit=crop',
       category: 'Almacenamiento',
       stock: 35,
-      createdAt: '2024-01-21',
    },
    {
       id: '8',
@@ -79,6 +72,5 @@ export const mockProducts: Product[] = [
       image: 'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=500&h=500&fit=crop',
       category: 'Mobiliario',
       stock: 18,
-      createdAt: '2024-01-22',
    },
 ];

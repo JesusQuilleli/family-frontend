@@ -3,11 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/auth/store/auth.store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoading";
 import { useAuthRedirect } from "@/auth/hook/useAuth";
+import { validateReferralCodeAction } from "@/auth/actions/validate-referral";
+import { Info } from "lucide-react";
+import { CountryCodeSelector } from "@/components/ui/country-code-selector";
 
 
 export const RegisterPage = () => {
@@ -15,10 +19,27 @@ export const RegisterPage = () => {
   useAuthRedirect();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [adminName, setAdminName] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState("+58");
 
   const navigate = useNavigate();
 
   const { register } = useAuthStore();
+
+  // Capturar código de referido de la URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      validateReferralCodeAction(refCode).then((result) => {
+        if (result.valid) {
+          setReferralCode(refCode);
+          setAdminName(result.adminName || null);
+        }
+      });
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(true);
@@ -37,7 +58,9 @@ export const RegisterPage = () => {
       return;
     }
 
-    const result = await register(name, email, password, phone);
+    const fullPhone = `${countryCode} ${phone}`;
+
+    const result = await register(name, email, password, fullPhone, referralCode || undefined);
 
     console.log(result);
 
@@ -76,6 +99,14 @@ export const RegisterPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {referralCode && adminName && (
+                <Alert className="mb-4 border-blue-200 bg-blue-50">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    Te estás registrando como cliente de <strong>{adminName}</strong>
+                  </AlertDescription>
+                </Alert>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Correo electrónico</Label>
@@ -101,14 +132,17 @@ export const RegisterPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefono</Label>
-                  <Input
-                    id="phone"
-                    type="number"
-                    name="phone"
-                    placeholder="+58 412987654"
-                    required
-                    className="transition-all duration-200 focus:scale-[1.01]"
-                  />
+                  <div className="flex gap-2">
+                    <CountryCodeSelector value={countryCode} onChange={setCountryCode} />
+                    <Input
+                      id="phone"
+                      type="number"
+                      name="phone"
+                      placeholder="412987654"
+                      required
+                      className="transition-all duration-200 focus:scale-[1.01] flex-1"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Contraseña</Label>

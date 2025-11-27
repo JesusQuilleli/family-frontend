@@ -1,25 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { getProductsAction } from "@/actions/get-products";
 import { useSearchParams } from "react-router";
 
 export const useProducts = () => {
    const [searchParams] = useSearchParams();
 
-   // Parámetros de paginación
    const page = Number(searchParams.get("page")) || 1;
-   const limit = Number(searchParams.get("limit")) || 10;
+   const limit = Number(searchParams.get("limit")) || 12;
 
-   // Parámetros de filtrado (opcional - por si los implementas después)
-   //const categoryId = searchParams.get("category") || undefined;
-   //const query = searchParams.get("query") || undefined;
+   const categoryId = searchParams.get("categoryId") || undefined;
+   const query = searchParams.get("query") || undefined;
 
-   return useQuery({
-      queryKey: ["products", { page, limit }],
+   const query_result = useQuery({
+      queryKey: ["products", { page, limit, query, categoryId }],
       queryFn: () =>
          getProductsAction({
             page,
             limit,
+            categoryId,
+            query
          }),
       staleTime: 1000 * 60 * 5, // 5 minutos
+      placeholderData: keepPreviousData,
    });
+
+   return {
+      ...query_result,
+      refetchProducts: query_result.refetch, // Exponer explícitamente el refetch
+      // isLoading: query_result.isFetching, 
+   };
 };

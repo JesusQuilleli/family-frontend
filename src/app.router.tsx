@@ -14,6 +14,12 @@ import { AdminPaymentsPage } from "./admin/pages/payments/AdminPaymentsPage";
 import { ClientProductsPage } from "./client/pages/products/ClientProductsPage";
 import { ClientOrdersPage } from "./client/pages/orders/ClientOrdersPage";
 import { ClientPaymentsPage } from "./client/pages/payments/ClientPaymentsPage";
+import { AdminCategoriesPage } from "./admin/pages/categories/AdminCategoriesPage";
+import { ClientProfilePage } from "./client/pages/profile/ClientProfilePage";
+import { AdminClientsPage } from "./admin/pages/clients/AdminClientsPage";
+import { AdminClientDetailsPage } from "./admin/pages/clients/AdminClientDetailsPage";
+import ForgotPasswordPage from "./auth/pages/ForgotPasswordPage";
+import ResetPasswordPage from "./auth/pages/ResetPasswordPage";
 
 export const appRouter = createBrowserRouter([
 
@@ -37,6 +43,14 @@ export const appRouter = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />
+      },
+      {
+        path: "reset-password/:token",
+        element: <ResetPasswordPage />
       }
     ]
   },
@@ -67,6 +81,10 @@ export const appRouter = createBrowserRouter([
         path: 'pagos',
         element: <ClientPaymentsPage />
       },
+      {
+        path: 'perfil',
+        element: <ClientProfilePage />
+      },
 
     ]
   },
@@ -94,6 +112,22 @@ export const appRouter = createBrowserRouter([
       {
         path: 'pagos',
         element: <AdminPaymentsPage />
+      },
+      {
+        path: 'categorias',
+        element: <AdminCategoriesPage />
+      },
+      {
+        path: 'clientes',
+        element: <AdminClientsPage />
+      },
+      {
+        path: 'clientes/:id',
+        element: <AdminClientDetailsPage />
+      },
+      {
+        path: 'perfil',
+        element: <ClientProfilePage />
       }
 
     ]

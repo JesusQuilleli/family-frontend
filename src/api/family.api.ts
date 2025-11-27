@@ -14,4 +14,13 @@ FamilyApi.interceptors.request.use((config) => {
    return config;
 });
 
+export const checkBackendHealth = async () => {
+   try {
+      await FamilyApi.get('/test');
+      return true;
+   } catch (error) {
+      return false;
+   }
+}
+
 export { FamilyApi };

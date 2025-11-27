@@ -1,61 +1,145 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from 'react';
-import { useProducts } from '@/hooks/useProducts';
-import { ProductCard } from '@/components/components-global-products/ProductCard';
-import { ProductDialog } from '@/components/components-global-products/ProductDialog';
-import { ProductDetailDialog } from '@/components/components-global-products/ProductDetailDialog';
-import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { ProductBackend } from '@/types/products.interfaces';
 
+// Libraries and Types
+import { useState } from 'react';
+import { useSearchParams } from 'react-router';
+import type { ProductBackend } from '@/types/products.interfaces';
+// Components
+import { ProductCard } from '@/components/admin-products/ProductCard';
+import { ProductDialog } from '@/components/admin-products/ProductDialog';
+import { ProductDetailDialog } from '@/components/admin-products/ProductDetailDialog';
+import { ProductListItem } from '@/components/admin-products/ProductListItem';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Header } from '@/components/custom/Header';
+import { Button } from '@/components/ui/button';
+import { Search } from '@/components/custom/Search';
+import { DeleteProductDialog } from '@/components/admin-products/DeleteProductDialog';
+
+//Hooks
+import { useToast } from '@/hooks/use-toast';
+import { useCategories } from '@/hooks/useCategories';
+import { useProducts } from '@/hooks/useProducts';
+
+//Icons and Loading
+import { Plus } from 'lucide-react';
+import { createProductAction } from '@/admin/actions/products/add-new-product';
+import { updateProductAction } from '@/admin/actions/products/update-product';
+import { deleteProductAction } from '@/admin/actions/products/delete-product';
+import { LoadingSpinner } from '@/components/admin-products/LoadingSpinner';
+import { CustomPagination } from '@/components/custom/CustomPagination';
 
 export const AdminProductsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductBackend | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductBackend | null>(null);
+  const [searchParams] = useSearchParams();
+  const [loadingAddProduct, setLoadingAddProduct] = useState(false);
   const { toast } = useToast();
 
-  const { data, isLoading, isError, error } = useProducts();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<ProductBackend | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // ✅ CORREGIDO: Ahora recibe FormData
+  const { data, isLoading, isFetching, isError, error, refetchProducts } = useProducts();
+  const { data: dataCategories } = useCategories();
+
+  //console.log(data);
+
+  const currentQuery = searchParams.get('query') || '';
+  const currentCategory = searchParams.get('categoryId') || '';
+
   const handleAddProduct = async (formData: FormData) => {
+    setDialogOpen(false);
+    setLoadingAddProduct(true);
     try {
-      // TODO: Implementar createProductAction(formData)
-      console.log('Crear producto con FormData', formData);
+      const name = formData.get('name') as string;
+      const description = formData.get('description') as string;
+      const purchase_price = Number(formData.get('purchase_price'));
+      const sale_price = Number(formData.get('sale_price'));
+      const category_id = formData.get('category_id') as string;
+      const stock = Number(formData.get('stock'));
+      const image = formData.get('image') as File;
 
-      toast({
-        title: 'Producto agregado',
-        description: 'El producto ha sido agregado exitosamente.',
-      });
-      setDialogOpen(false);
+      // Llamar a la acción del servidor
+      const result = await createProductAction(
+        name,
+        description,
+        sale_price,
+        purchase_price,
+        category_id,
+        stock,
+        image
+      );
+
+      if (result.success) {
+        toast({
+          title: 'Producto agregado',
+          description: 'El producto ha sido agregado exitosamente.',
+        });
+        setDialogOpen(false);
+        await refetchProducts();
+      } else {
+        toast({
+          title: 'Error',
+          description: result.error || 'No se pudo agregar el producto.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: 'Error',
         description: 'No se pudo agregar el producto.',
         variant: 'destructive',
       });
+    } finally {
+      setLoadingAddProduct(false);
     }
   };
 
-  // ✅ CORREGIDO: Ahora recibe FormData
   const handleEditProduct = async (formData: FormData) => {
     if (!editingProduct) return;
 
     try {
-      // TODO: Implementar updateProductAction(editingProduct._id, formData)
-      console.log('Editar producto con FormData');
+      const name = formData.get('name') as string;
+      const description = formData.get('description') as string;
+      const purchase_price = Number(formData.get('purchase_price'));
+      const sale_price = Number(formData.get('sale_price'));
+      const category_id = formData.get('category_id') as string;
+      const stock = Number(formData.get('stock'));
 
-      toast({
-        title: 'Producto actualizado',
-        description: 'El producto ha sido actualizado exitosamente.',
-      });
-      setEditingProduct(null);
-      setDialogOpen(false);
+      const imageEntry = formData.get('image');
+      const image = (imageEntry instanceof File && imageEntry.size > 0) ? imageEntry : undefined;
+
+      const result = await updateProductAction(
+        editingProduct._id,
+        name,
+        description,
+        sale_price,
+        purchase_price,
+        category_id,
+        stock,
+        image
+      );
+
+      if (result.success) {
+        toast({
+          title: 'Producto actualizado',
+          description: 'El producto ha sido actualizado exitosamente.',
+        });
+        setEditingProduct(null);
+        setDialogOpen(false);
+        await refetchProducts();
+      } else {
+        toast({
+          title: 'Error',
+          description: result.error || 'No se pudo actualizar el producto.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Error',
         description: 'No se pudo actualizar el producto.',
@@ -64,23 +148,44 @@ export const AdminProductsPage = () => {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    try {
-      // TODO: Implementar deleteProductAction(id)
-      console.log('Eliminar producto:', id);
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
 
-      toast({
-        title: 'Producto eliminado',
-        description: 'El producto ha sido eliminado.',
-        variant: 'destructive',
-      });
+    setIsDeleting(true);
+    try {
+      const result = await deleteProductAction(productToDelete._id);
+
+      if (result.success) {
+        toast({
+          title: 'Producto eliminado',
+          description: 'El producto ha sido eliminado.',
+          variant: 'destructive',
+        });
+        await refetchProducts();
+        setDeleteDialogOpen(false);
+        setProductToDelete(null);
+      } else {
+        toast({
+          title: 'Error',
+          description: result.error || 'No se pudo eliminar el producto.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Error',
         description: 'No se pudo eliminar el producto.',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleDeleteProduct = (product: ProductBackend) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
   };
 
   const handleViewDetails = (product: ProductBackend) => {
@@ -96,16 +201,6 @@ export const AdminProductsPage = () => {
   const openAddDialog = () => {
     setEditingProduct(null);
     setDialogOpen(true);
-  };
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    if (data?.totalPages) {
-      setCurrentPage((prev) => Math.min(data.totalPages, prev + 1));
-    }
   };
 
   // Loading state
@@ -143,120 +238,130 @@ export const AdminProductsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Gestión de Productos</h1>
-              <p className="text-muted-foreground">
-                Administra tu inventario de productos
-              </p>
+    <>
+
+      {loadingAddProduct && (<LoadingSpinner title='Creando Producto.' />)}
+
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b border-border bg-card sticky top-0 z-10 shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <Header
+                title="Gestión de Productos"
+                subtitle="Administra los Productos de tu negocio."
+              />
+              {(currentQuery || currentCategory === '') && (<Button onClick={openAddDialog}>
+                <Plus className="w-4 h-4 mr-2" />
+                {loadingAddProduct ? 'Agregando...' : 'Agregar Producto'}
+              </Button>)}
+
             </div>
-            <Button onClick={openAddDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar Producto
-            </Button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Products Grid */}
-      <main className="container mx-auto px-4 py-8">
-        {data?.products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">No tienes productos registrados</p>
-            <Button onClick={openAddDialog} className="mt-4">
-              <Plus className="w-4 h-4 mr-2" />
-              Crear tu primer producto
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Stats */}
-            <div className="mb-6 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Mostrando {data?.count} de {data?.totalProducts} productos
-              </span>
-              <span className="text-sm text-muted-foreground">
-                Página {data?.currentPage} de {data?.totalPages}
-              </span>
+        <Search categories={dataCategories?.categories || []} />
+
+        {/* Products Grid */}
+        <main className="container mx-auto px-4 py-8">
+          {data?.products.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">No tienes productos registrados</p>
+              <Button onClick={openAddDialog} className="mt-4">
+                <Plus className="w-4 h-4 mr-2" />
+                Crear tu primer producto
+              </Button>
             </div>
-
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {data?.products.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={{
-                    id: product._id,
-                    name: product.name,
-                    description: product.description,
-                    price: product.sale_price,
-                    category: product.category_id.name,
-                    stock: product.stock,
-                    image: product.image,
-                  }}
-                  onEdit={() => openEditDialog(product)}
-                  onDelete={() => handleDeleteProduct(product._id)}
-                  onViewDetails={() => handleViewDetails(product)}
-                  inCart={false}
-                  onAddToCart={() => { }}
-                  onRemoveFromCart={() => { }}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {data && data.totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Anterior
-                </Button>
-
-                <span className="px-4 py-2 text-sm">
-                  Página {data.currentPage} de {data.totalPages}
+          ) : (
+            <>
+              {/* Stats */}
+              <div className="mb-6 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Mostrando {data?.count} de {data?.totalProducts} productos
                 </span>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage === data.totalPages}
-                >
-                  Siguiente
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {data?.currentPage} de {data?.totalPages}
+                </span>
               </div>
-            )}
-          </>
-        )}
-      </main>
 
-      {/* ✅ CORREGIDO: Product Dialog */}
-      <ProductDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSave={editingProduct ? handleEditProduct : handleAddProduct}
-        editProduct={editingProduct} // 👈 Pasa el producto completo
-      />
+              {/* Products Grid */}
+              <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {data?.products.map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    onEdit={() => openEditDialog(product)}
+                    onDelete={() => handleDeleteProduct(product)}
+                    onViewDetails={() => handleViewDetails(product)}
+                    inCart={false}
+                    onAddToCart={() => { }}
+                    onRemoveFromCart={() => { }}
+                  />
+                ))}
+              </div>
 
-      {/* ✅ CORREGIDO: Product Detail Dialog */}
-      <ProductDetailDialog
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
-        product={selectedProduct} // 👈 Pasa el producto completo
-        inCart={false}
-        onAddToCart={() => { }}
-        onRemoveFromCart={() => { }}
-      />
-    </div>
+              <div className="block sm:hidden border rounded-md divide-y">
+                {data?.products.map((product) => (
+                  <ProductListItem
+                    key={product._id}
+                    product={{
+                      _id: product._id,
+                      name: product.name,
+                      sale_price: product.sale_price,
+                      stock: product.stock,
+                      category_id: product.category_id,
+                      user_uid: product.user_uid,
+                      description: product.description,
+                      purchase_price: product.purchase_price,
+                      image: product.image,
+                      __v: product.__v,
+                    }}
+                    onEdit={() => openEditDialog(product)}
+                    onDelete={() => handleDeleteProduct(product)}
+                    onViewDetails={() => handleViewDetails(product)}
+                  />
+                ))}
+              </div>
+
+            </>
+          )}
+
+          {/* Paginación */}
+          {data && data.totalPages > 1 && (
+            <CustomPagination
+              totalPages={data.totalPages}
+              isLoading={isFetching}
+            />
+          )}
+
+        </main>
+
+        {/* ✅ CORREGIDO: Product Dialog */}
+        <ProductDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSave={editingProduct ? handleEditProduct : handleAddProduct}
+          editProduct={editingProduct}
+        />
+
+        {/* ✅ CORREGIDO: Product Detail Dialog */}
+        <ProductDetailDialog
+          open={detailDialogOpen}
+          onOpenChange={setDetailDialogOpen}
+          product={selectedProduct}
+          inCart={false}
+          onAddToCart={() => { }}
+          onRemoveFromCart={() => { }}
+        />
+
+        <DeleteProductDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={confirmDeleteProduct}
+          productName={productToDelete?.name}
+          isDeleting={isDeleting}
+        />
+      </div>
+    </>
   );
 };
