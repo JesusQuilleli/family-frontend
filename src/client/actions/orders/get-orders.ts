@@ -30,7 +30,7 @@ export const getOrdersAction = async ({ page = 1, limit = 10, status = 'all', da
          currentPage: data.currentPage,
          totalOrders: data.totalOrders
       };
-   } catch (error) {
+   } catch (error: any) {
       console.log(error);
       throw new Error("Error al obtener los pedidos");
    }

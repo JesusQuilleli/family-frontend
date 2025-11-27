@@ -10,7 +10,7 @@ export const forgotPasswordAction = async (email: string): Promise<any> => {
    try {
       const { data } = await FamilyApi.post("/auth/forgot-password", { email });
       return data;
-   } catch (error) {
+   } catch (error: any) {
       if (axios.isAxiosError(error)) {
          const backendError = error.response?.data as ApiError;
          if (backendError && backendError.msg) {
@@ -25,7 +25,7 @@ export const resetPasswordAction = async (token: string, password: string): Prom
    try {
       const { data } = await FamilyApi.post(`/auth/reset-password/${token}`, { password });
       return data;
-   } catch (error) {
+   } catch (error: any) {
       if (axios.isAxiosError(error)) {
          const backendError = error.response?.data as ApiError;
          if (backendError && backendError.msg) {
@@ -39,7 +39,7 @@ export const updateProfileAction = async (data: { name?: string; email?: string;
    try {
       const response = await FamilyApi.put("/auth/profile", data);
       return response.data;
-   } catch (error) {
+   } catch (error: any) {
       if (axios.isAxiosError(error)) {
          const backendError = error.response?.data as ApiError;
          if (backendError && backendError.msg) {
@@ -54,7 +54,7 @@ export const deleteAccountAction = async (): Promise<any> => {
    try {
       const response = await FamilyApi.delete("/auth/profile");
       return response.data;
-   } catch (error) {
+   } catch (error: any) {
       if (axios.isAxiosError(error)) {
          const backendError = error.response?.data as ApiError;
          if (backendError && backendError.msg) {

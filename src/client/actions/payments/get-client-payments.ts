@@ -44,7 +44,7 @@ export const getClientPaymentsAction = async (params: GetClientPaymentsParams = 
          ...data,
          payments: paymentsWithFullUrls
       };
-   } catch (error) {
+   } catch (error: any) {
       console.error(error);
       throw new Error("No se pudieron obtener los pagos");
    }

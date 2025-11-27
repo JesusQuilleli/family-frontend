@@ -19,7 +19,7 @@ export const loginAction = async (
 
       return data;
 
-   } catch (error) {
+   } catch (error: any) {
       //console.log(error); // Mantén esto para depurar
 
       if (axios.isAxiosError(error)) {

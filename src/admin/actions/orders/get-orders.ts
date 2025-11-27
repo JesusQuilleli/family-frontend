@@ -21,7 +21,7 @@ export const getOrdersByAdmin = async ({ page = 1, limit = 10, status = '', date
 
       const { data } = await FamilyApi.get<OrdersResponse>(`/orders/admin/getOrders?${params.toString()}`);
       return data;
-   } catch (error) {
+   } catch (error: any) {
       if (isAxiosError(error)) {
          console.log(error);
          throw new Error(error.response?.data.msg || 'Error al obtener los pedidos');

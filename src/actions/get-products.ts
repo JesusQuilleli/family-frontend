@@ -36,7 +36,7 @@ export const getProductsAction = async (
       products: productsWithImageUrls,
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al obtener productos:", error);
     throw error;
   }

@@ -11,7 +11,7 @@ export const getPaymentsByOrderAction = async (orderId: string): Promise<Payment
             : undefined,
       }));
       return payments;
-   } catch (error) {
+   } catch (error: any) {
       console.log(error);
       throw new Error("No se pudieron obtener los pagos");
    }
