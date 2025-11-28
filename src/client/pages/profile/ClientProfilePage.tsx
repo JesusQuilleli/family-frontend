@@ -3,11 +3,12 @@ import { useProfile } from '../../../hooks/useProfile';
 import { Loader2, Pencil, Trash2, X } from 'lucide-react';
 import { PasswordChangeForm } from '../../components/profile/PasswordChangeForm';
 import { ExchangeRateForm } from '../../../components/profile/ExchangeRateForm';
-import { EmailConfigForm } from '../../../components/profile/EmailConfigForm';
+import { PaymentConfigForm } from '../../../admin/components/profile/PaymentConfigForm';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { updateProfileAction, deleteAccountAction } from '../../../auth/actions/auth-actions';
+import { updateProfileAction, requestAccountDeletionAction } from '../../../auth/actions/auth-actions';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../../auth/store/auth.store';
 
 export const ClientProfilePage = () => {
    const { user, isLoading } = useProfile();
@@ -34,38 +35,60 @@ export const ClientProfilePage = () => {
       }
    };
 
+   const logout = useAuthStore(state => state.logout);
+
    const handleUpdateProfile = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
+         const emailChanged = user?.email !== formData.email;
+
          await updateProfileAction(formData);
          await queryClient.invalidateQueries({ queryKey: ['profile'] });
-         setIsEditing(false);
-         Swal.fire('Éxito', 'Perfil actualizado correctamente', 'success');
+
+         if (emailChanged) {
+            await Swal.fire({
+               title: 'Correo actualizado',
+               text: 'Tu sesión se cerrará para aplicar los cambios. Por favor, inicia sesión nuevamente con tu nuevo correo.',
+               icon: 'success',
+               confirmButtonText: 'Entendido'
+            });
+            logout();
+            navigate('/auth/login');
+         } else {
+            setIsEditing(false);
+            Swal.fire('Éxito', 'Perfil actualizado correctamente', 'success');
+         }
       } catch (error: any) {
          Swal.fire('Error', error.message || 'No se pudo actualizar el perfil', 'error');
       }
    };
 
-   const handleDeleteAccount = async () => {
-      const result = await Swal.fire({
-         title: '¿Estás seguro?',
-         text: "Esta acción no se puede deshacer. Tu cuenta será eliminada permanentemente.",
-         icon: 'warning',
+   const handleRequestDeletion = async () => {
+      const { value: reason } = await Swal.fire({
+         title: 'Solicitar Eliminación de Cuenta',
+         input: 'textarea',
+         inputLabel: 'Por favor, indícanos el motivo',
+         inputPlaceholder: 'Escribe tu razón aquí...',
+         inputAttributes: {
+            'aria-label': 'Escribe tu razón aquí'
+         },
          showCancelButton: true,
+         confirmButtonText: 'Enviar Solicitud',
+         cancelButtonText: 'Cancelar',
          confirmButtonColor: '#d33',
-         cancelButtonColor: '#3085d6',
-         confirmButtonText: 'Sí, eliminar cuenta',
-         cancelButtonText: 'Cancelar'
+         inputValidator: (value) => {
+            if (!value) {
+               return 'Necesitas escribir un motivo';
+            }
+         }
       });
 
-      if (result.isConfirmed) {
+      if (reason) {
          try {
-            await deleteAccountAction();
-            localStorage.removeItem('token');
-            navigate('/auth/login');
-            Swal.fire('Eliminado', 'Tu cuenta ha sido eliminada.', 'success');
+            await requestAccountDeletionAction(reason);
+            Swal.fire('Solicitud Enviada', 'Tu solicitud ha sido enviada al administrador para su revisión.', 'success');
          } catch (error: any) {
-            Swal.fire('Error', error.message || 'No se pudo eliminar la cuenta', 'error');
+            Swal.fire('Error', error.message || 'No se pudo enviar la solicitud', 'error');
          }
       }
    };
@@ -95,12 +118,15 @@ export const ClientProfilePage = () => {
                   <ExchangeRateForm initialRates={user?.exchangeRates} />
                </div>
             );
-         case 'email-config':
+         case 'payment-config':
             if (user?.role !== 'admin') return null;
             return (
                <div className="max-w-2xl mx-auto">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Configuración de Correo</h2>
-                  <EmailConfigForm />
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Configuración de Cobro</h2>
+                  <p className="text-gray-600 mb-6">
+                     Estos datos se enviarán a tus clientes cuando les envíes un recordatorio de pago.
+                  </p>
+                  <PaymentConfigForm initialData={user?.payment_config} />
                </div>
             );
          case 'info':
@@ -163,19 +189,30 @@ export const ClientProfilePage = () => {
                      </div>
                   </div>
 
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                     <h3 className="text-lg font-semibold text-red-800 mb-2">Zona de Peligro</h3>
-                     <p className="text-red-600 mb-4">
-                        Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate de querer hacer esto.
-                     </p>
-                     <button
-                        onClick={handleDeleteAccount}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                     >
-                        <Trash2 size={18} />
-                        Eliminar Cuenta
-                     </button>
-                  </div>
+                  {user?.role !== 'admin' && (
+                     user?.deletionRequested ? (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                           <h3 className="text-lg font-semibold text-yellow-800 mb-2">Solicitud en Proceso</h3>
+                           <p className="text-yellow-700">
+                              Tu solicitud de eliminación de cuenta está siendo verificada por nuestro equipo. Te notificaremos cuando el proceso haya finalizado.
+                           </p>
+                        </div>
+                     ) : (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                           <h3 className="text-lg font-semibold text-red-800 mb-2">Zona de Peligro</h3>
+                           <p className="text-red-600 mb-4">
+                              Si deseas eliminar tu cuenta, debes enviar una solicitud. Un administrador revisará que no tengas deudas pendientes.
+                           </p>
+                           <button
+                              onClick={handleRequestDeletion}
+                              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                           >
+                              <Trash2 size={18} />
+                              Solicitar Eliminación
+                           </button>
+                        </div>
+                     )
+                  )}
 
                   {/* Edit Modal */}
                   {isEditing && (

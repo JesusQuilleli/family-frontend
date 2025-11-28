@@ -59,7 +59,7 @@ export const HomePageAdmin = () => {
       <Header title="Panel de Control" subtitle="Resumen general de tu tienda y actividades recientes." />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -114,19 +114,19 @@ export const HomePageAdmin = () => {
                   <p className="text-sm text-muted-foreground">No hay actividad reciente.</p>
                 ) : (
                   recentOrders.map((order) => (
-                    <div key={order._id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                    <div key={order._id} className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 last:border-0 last:pb-0 gap-4 sm:gap-0">
                       <div className="flex items-center gap-4">
-                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <ShoppingBag className="h-5 w-5 text-primary" />
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium leading-none">Pedido #{order._id.slice(-6)}</p>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="space-y-1 min-w-0">
+                          <p className="text-sm font-medium leading-none truncate">Pedido #{order._id.slice(-6)}</p>
+                          <p className="text-xs text-muted-foreground truncate">
                             {order.client_uid?.name || 'Cliente'} • {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true, locale: es })}
                           </p>
                         </div>
                       </div>
-                      <div className="text-sm font-medium">
+                      <div className="text-sm font-medium pl-[3.25rem] sm:pl-0">
                         <PriceDisplay price={order.total} />
                       </div>
                     </div>
@@ -143,7 +143,7 @@ export const HomePageAdmin = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Productos Recientes</CardTitle>
+              <CardTitle>Productos Agregados a la Tienda Recientemente</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -151,14 +151,14 @@ export const HomePageAdmin = () => {
                   <p className="text-sm text-muted-foreground">No hay productos disponibles.</p>
                 ) : (
                   topProducts.map((product) => (
-                    <div key={product._id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 overflow-hidden">
+                    <div key={product._id} className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         {product.image && (
-                          <img src={getImageUrl(product.image)} alt={product.name} className="h-8 w-8 rounded object-cover" onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }} />
+                          <img src={getImageUrl(product.image)} alt={product.name} className="h-8 w-8 rounded object-cover shrink-0" onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }} />
                         )}
-                        <span className="text-sm truncate max-w-[150px]">{product.name}</span>
+                        <span className="text-sm truncate">{product.name}</span>
                       </div>
-                      <span className="text-xs font-medium bg-secondary px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium bg-secondary px-2 py-1 rounded-full shrink-0">
                         <PriceDisplay price={product.sale_price} />
                       </span>
                     </div>

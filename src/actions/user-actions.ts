@@ -19,6 +19,18 @@ export interface User {
       tasaPesos: number;
       clientCurrency?: 'USD' | 'VES' | 'COP';
    };
+   payment_config?: {
+      bank_name: string;
+      account_number: string;
+      account_type: string;
+      phone: string;
+      identification: string;
+      instructions: string;
+   };
+   deleted?: boolean;
+   deletedAt?: string;
+   deletionRequested?: boolean;
+   deletionReason?: string;
 }
 
 export interface UsersResponse {
@@ -39,8 +51,13 @@ export const getUserProfile = async (): Promise<User> => {
    return data.user;
 }
 
-export const getAllUsers = async (page = 1, limit = 10, search = ''): Promise<UsersResponse> => {
-   const { data } = await FamilyApi.get<UsersResponse>(`/auth/users?page=${page}&limit=${limit}&search=${search}`);
+export const updateUserProfile = async (userData: Partial<User>): Promise<User> => {
+   const { data } = await FamilyApi.put<ProfileResponse>('/auth/profile', userData);
+   return data.user;
+}
+
+export const getAllUsers = async (page = 1, limit = 10, search = '', deleted = false): Promise<UsersResponse> => {
+   const { data } = await FamilyApi.get<UsersResponse>(`/auth/users?page=${page}&limit=${limit}&search=${search}&deleted=${deleted}`);
    return data;
 }
 

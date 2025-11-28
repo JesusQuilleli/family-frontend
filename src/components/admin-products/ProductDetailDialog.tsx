@@ -51,10 +51,10 @@ export const ProductDetailDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">{product.name}</DialogTitle>
-          <DialogDescription>{product.category_id.name}</DialogDescription>
+          <DialogDescription>{product.category_id?.name || 'Sin categoría'}</DialogDescription>
         </DialogHeader>
 
         <div className="grid md:grid-cols-2 gap-6 mt-4">
@@ -74,7 +74,7 @@ export const ProductDetailDialog = ({
             <div className="flex gap-2 flex-wrap">
               <Badge variant="secondary" className="text-sm">
                 <Tag className="w-3 h-3 mr-1" />
-                {product.category_id.name}
+                {product.category_id?.name || 'Sin categoría'}
               </Badge>
               <Badge
                 variant={product.stock > 10 ? 'default' : product.stock > 0 ? 'secondary' : 'destructive'}
@@ -102,7 +102,7 @@ export const ProductDetailDialog = ({
               <div className="space-y-2">
                 <div className="flex justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Categoría</span>
-                  <span className="font-medium">{product.category_id.name}</span>
+                  <span className="font-medium">{product.category_id?.name || 'Sin categoría'}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Disponibilidad</span>

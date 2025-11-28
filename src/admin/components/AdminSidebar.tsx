@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw, Mail } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw } from "lucide-react";
 import { NavLink } from "../../components/NavLink";
 import { useLocation, useNavigate } from "react-router";
 import { useState } from "react";
@@ -44,7 +44,7 @@ export const AdminSidebar = () => {
             { title: "Perfil", url: `/admin/perfil?view=info`, icon: User },
             { title: "Cambiar Contraseña", url: `/admin/perfil?view=password`, icon: Key },
             { title: "Tasas de Cambio", url: `/admin/perfil?view=rates`, icon: RefreshCcw },
-            { title: "Configuración de Correo", url: `/admin/perfil?view=email-config`, icon: Mail },
+            { title: "Datos de Cobro", url: `/admin/perfil?view=payment-config`, icon: CreditCard },
          ]
       }
    ];

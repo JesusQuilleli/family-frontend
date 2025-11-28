@@ -178,11 +178,6 @@ export const CartSheet = () => {
                <div className="p-6 bg-muted/5 border-t mt-auto">
                   <div className="space-y-4">
                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                           <span>Subtotal</span>
-                           <span>{formatCurrency(getTotal())}</span>
-                        </div>
-                        <Separator />
                         <div className="flex items-center justify-between font-bold text-lg">
                            <span>Total</span>
                            <PriceDisplay price={getTotal()} className="items-end" />

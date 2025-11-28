@@ -53,3 +53,13 @@ export const getOrdersByAdmin = async (page = 1, limit = 10, status = '', date =
    const { data } = await FamilyApi.get<OrdersResponse>(`/orders/admin/getOrders?${params.toString()}`);
    return data;
 }
+
+export const sendPaymentReminder = async (orderId: string) => {
+   const { data } = await FamilyApi.post(`/orders/admin/reminder/${orderId}`);
+   return data;
+}
+
+export const sendBulkPaymentReminders = async () => {
+   const { data } = await FamilyApi.post(`/orders/admin/reminders/bulk`);
+   return data;
+}

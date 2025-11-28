@@ -50,6 +50,12 @@ export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
                   value={tasaBs}
                   onChange={(e) => setTasaBs(Number(e.target.value))}
                   required
+                  maxLength={7}
+                  onInput={(e) => {
+                     if (e.currentTarget.value.length > 7) {
+                        e.currentTarget.value = e.currentTarget.value.slice(0, 7);
+                     }
+                  }}
                />
             </div>
             <div className="space-y-2">
@@ -61,6 +67,12 @@ export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
                   value={tasaPesos}
                   onChange={(e) => setTasaPesos(Number(e.target.value))}
                   required
+                  maxLength={7}
+                  onInput={(e) => {
+                     if (e.currentTarget.value.length > 7) {
+                        e.currentTarget.value = e.currentTarget.value.slice(0, 7);
+                     }
+                  }}
                />
             </div>
             <div className="space-y-2 md:col-span-2">

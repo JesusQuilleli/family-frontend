@@ -4,6 +4,7 @@ interface Category {
   _id: string;
   name: string;
   user_uid: string;
+  image?: string;
   createdAt: string;
 }
 

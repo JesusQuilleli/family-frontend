@@ -1,5 +1,3 @@
-// Ruta: src/components/admin-categories/CategoryDialog.tsx
-
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,10 +22,12 @@ import {
    FormDescription,
 } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
+import { ImageUpload } from '@/components/common/ImageUpload';
 
 interface Category {
    _id: string;
    name: string;
+   image?: string;
 }
 
 interface CategoryDialogProps {
@@ -46,6 +46,8 @@ export const CategoryDialog = ({
    initialName = '',
 }: CategoryDialogProps) => {
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+   const [imageRemoved, setImageRemoved] = useState(false);
 
    const form = useForm<CategoryFormData>({
       resolver: zodResolver(categorySchema),
@@ -57,6 +59,8 @@ export const CategoryDialog = ({
    // Resetear formulario cuando se abre/cierra o cambia la categoría a editar
    useEffect(() => {
       if (open) {
+         setSelectedImage(null);
+         setImageRemoved(false);
          if (editCategory) {
             form.reset({
                name: editCategory.name || '',
@@ -77,8 +81,16 @@ export const CategoryDialog = ({
          const formData = new FormData();
          formData.append('name', data.name.trim());
 
+         if (selectedImage) {
+            formData.append('image', selectedImage);
+         } else if (imageRemoved) {
+            formData.append('delete_image', 'true');
+         }
+
          await onSave(formData);
          form.reset();
+         setSelectedImage(null);
+         setImageRemoved(false);
       } catch (error) {
          console.error('Error al guardar categoría:', error);
       } finally {
@@ -97,8 +109,8 @@ export const CategoryDialog = ({
                      </DialogTitle>
                      <DialogDescription>
                         {editCategory
-                           ? 'Modifica el nombre de la categoría'
-                           : 'Ingresa el nombre de la nueva categoría'}
+                           ? 'Modifica el nombre o imagen de la categoría'
+                           : 'Ingresa los datos de la nueva categoría'}
                      </DialogDescription>
                   </DialogHeader>
 
@@ -114,6 +126,7 @@ export const CategoryDialog = ({
                                     placeholder="Ej: Electrónica, Ropa, Alimentos..."
                                     {...field}
                                     autoFocus
+                                    maxLength={30}
                                  />
                               </FormControl>
                               <FormDescription>
@@ -123,6 +136,18 @@ export const CategoryDialog = ({
                            </FormItem>
                         )}
                      />
+
+                     <div className="space-y-2">
+                        <FormLabel>Imagen (Opcional)</FormLabel>
+                        <ImageUpload
+                           onFileSelect={(file) => {
+                              setSelectedImage(file || null);
+                              if (!file) setImageRemoved(true);
+                              else setImageRemoved(false);
+                           }}
+                           value={editCategory?.image}
+                        />
+                     </div>
                   </div>
 
                   <DialogFooter>

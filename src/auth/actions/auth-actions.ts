@@ -50,9 +50,9 @@ export const updateProfileAction = async (data: { name?: string; email?: string;
    }
 };
 
-export const deleteAccountAction = async (): Promise<any> => {
+export const requestAccountDeletionAction = async (reason: string): Promise<any> => {
    try {
-      const response = await FamilyApi.delete("/auth/profile");
+      const response = await FamilyApi.post("/auth/request-deletion", { reason });
       return response.data;
    } catch (error: any) {
       if (axios.isAxiosError(error)) {
@@ -61,6 +61,6 @@ export const deleteAccountAction = async (): Promise<any> => {
             throw new Error(backendError.msg);
          }
       }
-      throw new Error("Error al eliminar cuenta");
+      throw new Error("Error al solicitar eliminación de cuenta");
    }
 };

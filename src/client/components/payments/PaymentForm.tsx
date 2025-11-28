@@ -77,7 +77,7 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
       let amountInUsd = values.amount;
 
       if (currency === 'VES') {
-         amountInUsd = Number((values.amount / tasaBs).toFixed(2));
+         amountInUsd = Number((values.amount / tasaBs).toFixed(6));
       }
 
       if (amountInUsd > remainingAmount + 0.01) { // Small tolerance for rounding

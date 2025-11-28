@@ -14,6 +14,8 @@ interface ImageUploadProps {
    className?: string;
 }
 
+import { getImageUrl } from '@/helpers/get-image-url';
+
 export const ImageUpload = ({
    value,
    onFileSelect,
@@ -43,6 +45,16 @@ export const ImageUpload = ({
          return;
       }
 
+      // Validar tamaño de archivo (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+         toast({
+            title: "Error",
+            description: "La imagen no debe superar los 5MB",
+            variant: "destructive"
+         });
+         return;
+      }
+
       // Crear preview local
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
@@ -57,15 +69,6 @@ export const ImageUpload = ({
       if (fileInputRef.current) {
          fileInputRef.current.value = '';
       }
-   };
-
-   // Helper para construir la URL completa si es relativa
-   const getImageUrl = (url: string) => {
-      if (url.startsWith('http')) return url;
-      // Si es un blob local (preview), retornarlo tal cual
-      if (url.startsWith('blob:')) return url;
-      // Si es relativa del backend, agregar la URL base
-      return `${import.meta.env.VITE_API_URL}${url}`;
    };
 
    return (

@@ -4,14 +4,15 @@ import { Toaster as Sonner } from 'sonner';
 import { Toaster } from "./components/ui/toaster";
 import { useAuthStore } from "./auth/store/auth.store";
 import { useEffect, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { checkBackendHealth } from "./api/family.api";
 import { ServerWakeUp } from "./components/ui/server-wake-up";
+import { useSocketNotifications } from "./hooks/useSocketNotifications.tsx";
 
 export const App = () => {
   const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
   const [isServerWakingUp, setIsServerWakingUp] = useState(false);
-  const queryClient = new QueryClient();
+
+  useSocketNotifications();
 
   useEffect(() => {
     checkAuthStatus();
@@ -36,11 +37,11 @@ export const App = () => {
 
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       {isServerWakingUp && <ServerWakeUp />}
       <RouterProvider router={appRouter} />
       <Sonner />
       <Toaster />
-    </QueryClientProvider>
+    </>
   )
 }

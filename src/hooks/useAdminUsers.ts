@@ -5,10 +5,11 @@ import { useState } from 'react';
 export const useAdminUsers = () => {
    const [page, setPage] = useState(1);
    const [search, setSearch] = useState('');
+   const [showDeleted, setShowDeleted] = useState(false);
 
    const { data, isLoading, error } = useQuery({
-      queryKey: ['users', page, search],
-      queryFn: () => getAllUsers(page, 10, search),
+      queryKey: ['users', page, search, showDeleted],
+      queryFn: () => getAllUsers(page, 10, search, showDeleted),
       staleTime: 1000 * 60 * 5, // 5 minutes
    });
 
@@ -22,6 +23,8 @@ export const useAdminUsers = () => {
       page,
       setPage,
       search,
-      setSearch
+      setSearch,
+      showDeleted,
+      setShowDeleted
    };
 };

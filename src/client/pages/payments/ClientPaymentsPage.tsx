@@ -261,9 +261,11 @@ export const ClientPaymentsPage = () => {
 
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Hash className="w-4 h-4 text-primary" />
                       <span className="font-bold text-lg" title={payment._id}>
-                        Pago #{payment._id.slice(-6)}
+                        {payment.order_uid
+                          ? `Pago destinado al Pedido #${payment.order_uid._id.slice(-6)}`
+                          : `Pago #${payment._id.slice(-6)}`
+                        }
                       </span>
                     </div>
 

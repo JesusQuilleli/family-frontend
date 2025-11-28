@@ -1,7 +1,7 @@
 // components/Search.jsx
 import { useRef } from 'react';
 // Asegúrate de importar desde 'react-router-dom' o 'next/navigation'
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Input } from '../ui/input';
 import {
    Select,
@@ -25,6 +25,8 @@ export const Search = ({
 
    const [searchParams, setSearchParams] = useSearchParams();
    const inputRef = useRef<HTMLInputElement>(null);
+
+   const { pathname } = useLocation();
 
    const currentQuery = searchParams.get('query') || '';
    const currentCategory = searchParams.get('categoryId') || 'all';
@@ -88,7 +90,7 @@ export const Search = ({
                <div className="relative flex-1">
                   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                     placeholder="Buscar productos..."
+                     placeholder={pathname.includes('/admin/productos') ? 'Buscar productos...' : 'Buscar categorías...'}
                      ref={inputRef}
                      defaultValue={currentQuery}
                      onKeyDown={handleKeyDown}

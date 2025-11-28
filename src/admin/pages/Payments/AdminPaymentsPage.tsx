@@ -1,7 +1,7 @@
 // Force git update
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getPaymentsByAdmin, getPaymentsStats } from '@/admin/actions/payments/get-payments';
-import { deletePayment } from '@/admin/actions/payments/delete-payment';
+
 import { verifyPayment, rejectPayment } from '@/admin/actions/payments/update-payment';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -136,23 +136,9 @@ export const AdminPaymentsPage = () => {
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: deletePayment,
-    onSuccess: () => {
-      toast.success('Pago eliminado correctamente');
-      queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-payments-stats'] });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    }
-  });
 
-  const handleDeleteClick = (id: string) => {
-    if (window.confirm("¿Estás seguro de eliminar este pago? Esta acción no se puede deshacer.")) {
-      deleteMutation.mutate(id);
-    }
-  };
+
+
 
   const handleRejectClick = (payment: Payment) => {
     setSelectedPayment(payment);
@@ -214,13 +200,7 @@ export const AdminPaymentsPage = () => {
           </>
         )}
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-red-600 focus:text-red-600"
-          onClick={() => handleDeleteClick(payment._id)}
-        >
-          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-        </DropdownMenuItem>
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -357,7 +337,6 @@ export const AdminPaymentsPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Pedido</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Fecha</TableHead>
@@ -371,7 +350,6 @@ export const AdminPaymentsPage = () => {
           <TableBody>
             {paymentsData?.payments.map((payment) => (
               <TableRow key={payment._id}>
-                <TableCell className="font-mono text-xs">{payment._id.slice(-6)}</TableCell>
                 <TableCell className="font-mono text-xs">
                   {payment.order_uid?._id ? payment.order_uid._id.slice(-6) : 'N/A'}
                 </TableCell>
@@ -601,8 +579,6 @@ export const AdminPaymentsPage = () => {
                   <div>
                     <h4 className="font-semibold mb-2">Información del Pedido</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <span className="text-muted-foreground">ID Pedido:</span>
-                      <span className="font-mono">{selectedPayment.order_uid?._id}</span>
 
                       <span className="text-muted-foreground">Total Pedido:</span>
                       <span>

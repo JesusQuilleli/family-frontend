@@ -23,7 +23,7 @@ export const ProductListItem = ({ product, onEdit, onDelete, onViewDetails }: Pr
                {product.name}
             </p>
             <p className="text-sm text-muted-foreground truncate">
-               {product.category_id.name}
+               {product.category_id?.name || 'Sin categoría'}
             </p>
          </div>
 

@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getOrdersByAdmin } from '@/admin/actions/orders/get-orders';
-import { deleteOrder } from '@/admin/actions/orders/delete-order';
-import { approveOrder, rejectOrder, cancelOrder, updateOrderStatus } from '@/admin/actions/orders/update-order';
+
+import { approveOrder, rejectOrder, cancelOrder } from '@/admin/actions/orders/update-order';
+import { sendPaymentReminder, sendBulkPaymentReminders } from '@/actions/order-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +37,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Trash2, Eye, CreditCard } from 'lucide-react';
+import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Eye, CreditCard, Bell } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -145,33 +146,31 @@ export const AdminOrdersPage = () => {
     }
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string, status: string }) => updateOrderStatus(id, status),
+
+
+  const reminderMutation = useMutation({
+    mutationFn: sendPaymentReminder,
     onSuccess: () => {
-      toast.success('Estado actualizado correctamente');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast.success('Recordatorio enviado correctamente');
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: any) => {
+      toast.error(error.response?.data?.msg || 'Error al enviar recordatorio');
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteOrder,
-    onSuccess: () => {
-      toast.success('Pedido eliminado correctamente');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+  const bulkReminderMutation = useMutation({
+    mutationFn: sendBulkPaymentReminders,
+    onSuccess: (data: any) => {
+      toast.success(data.msg || 'Recordatorios enviados correctamente');
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: any) => {
+      toast.error(error.response?.data?.msg || 'Error al enviar recordatorios masivos');
     }
   });
 
-  const handleDeleteClick = (id: string) => {
-    if (window.confirm("¿Estás seguro de eliminar este pedido? Esta acción eliminará también los pagos asociados y no se puede deshacer.")) {
-      deleteMutation.mutate(id);
-    }
-  };
+
+
+
 
   const handleRejectClick = (order: Order) => {
     setSelectedOrder(order);
@@ -237,25 +236,15 @@ export const AdminOrdersPage = () => {
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>Cambiar Estado</DropdownMenuLabel>
-        {['pendiente', 'por pagar', 'abonado', 'pagado', 'completado'].map((status) => (
-          <DropdownMenuItem
-            key={status}
-            disabled={order.status === status}
-            onClick={() => statusMutation.mutate({ id: order._id, status })}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" /> {status}
+        {(order.status === 'por pagar' || order.status === 'abonado') && (
+          <DropdownMenuItem onClick={() => reminderMutation.mutate(order._id)}>
+            <Bell className="mr-2 h-4 w-4" /> Enviar Cobro
           </DropdownMenuItem>
-        ))}
+        )}
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-red-600 focus:text-red-600"
-          onClick={() => handleDeleteClick(order._id)}
-        >
-          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-        </DropdownMenuItem>
+
+
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -293,6 +282,8 @@ export const AdminOrdersPage = () => {
       </div>
     );
   }
+
+  const showRemainingColumn = ordersData?.orders.some(order => order.status !== 'pagado');
 
   return (
     <div className="p-4 md:p-8">
@@ -352,6 +343,26 @@ export const AdminOrdersPage = () => {
               Limpiar
             </Button>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => bulkReminderMutation.mutate()}
+            disabled={bulkReminderMutation.isPending}
+            className="ml-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+          >
+            {bulkReminderMutation.isPending ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Bell className="w-4 h-4 mr-2" />
+                Enviar Cobro General
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -364,7 +375,7 @@ export const AdminOrdersPage = () => {
               <TableHead>Cliente</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Restante</TableHead>
+              {showRemainingColumn && <TableHead>Restante</TableHead>}
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -375,19 +386,23 @@ export const AdminOrdersPage = () => {
                 <TableCell className="font-mono text-xs">{order._id.slice(-6)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium">{order.client_uid.name}</span>
-                    <span className="text-xs text-muted-foreground">{order.client_uid.email}</span>
+                    <span className="font-medium">{order.client_uid?.name || 'Usuario Eliminado'}</span>
+                    <span className="text-xs text-muted-foreground">{order.client_uid?.email || 'N/A'}</span>
                   </div>
                 </TableCell>
                 <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <PriceDisplay price={order.total} className="items-start" />
                 </TableCell>
-                <TableCell>
-                  <div className={`${order.remaining > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}`}>
-                    <PriceDisplay price={order.remaining} className="items-start" />
-                  </div>
-                </TableCell>
+                {showRemainingColumn && (
+                  <TableCell>
+                    {order.status !== 'pagado' && (
+                      <div className={`${order.remaining > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}`}>
+                        <PriceDisplay price={order.remaining} className="items-start" />
+                      </div>
+                    )}
+                  </TableCell>
+                )}
                 <TableCell>
                   {renderStatusBadge(order.status)}
                 </TableCell>
@@ -418,8 +433,8 @@ export const AdminOrdersPage = () => {
                     Cliente
                   </div>
                   <div className="text-right">
-                    <div className="font-medium">{order.client_uid.name}</div>
-                    <div className="text-xs text-muted-foreground">{order.client_uid.email}</div>
+                    <div className="font-medium">{order.client_uid?.name || 'Usuario Eliminado'}</div>
+                    <div className="text-xs text-muted-foreground">{order.client_uid?.email || 'N/A'}</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -438,15 +453,17 @@ export const AdminOrdersPage = () => {
                     <PriceDisplay price={order.total} className="items-end" />
                   </div>
                 </div>
-                <div className="flex items-start justify-between text-sm">
-                  <div className="flex items-center text-muted-foreground mt-1">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Restante
+                {order.status !== 'pagado' && (
+                  <div className="flex items-start justify-between text-sm">
+                    <div className="flex items-center text-muted-foreground mt-1">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Restante
+                    </div>
+                    <div className={`font-bold text-right ${order.remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      <PriceDisplay price={order.remaining} className="items-end" />
+                    </div>
                   </div>
-                  <div className={`font-bold text-right ${order.remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    <PriceDisplay price={order.remaining} className="items-end" />
-                  </div>
-                </div>
+                )}
                 <div className="flex items-center justify-between text-sm pt-2">
                   <span className="text-muted-foreground">Estado</span>
                   {renderStatusBadge(order.status)}
@@ -574,47 +591,73 @@ export const AdminOrdersPage = () => {
           <DialogHeader>
             <DialogTitle>Detalles del Pedido #{selectedOrder?._id.slice(-6)}</DialogTitle>
             <DialogDescription>
-              Cliente: {selectedOrder?.client_uid.name} ({selectedOrder?.client_uid.email})
+              Cliente: {selectedOrder?.client_uid?.name || 'Usuario Eliminado'} ({selectedOrder?.client_uid?.email || 'N/A'})
             </DialogDescription>
           </DialogHeader>
 
           <div className="max-h-[60vh] overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="text-right">Cant.</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {selectedOrder?.products.map((item) => (
-                  <TableRow key={item._id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {item.product_uid.image && (
-                          <img
-                            src={getImageUrl(item.product_uid.image)}
-                            alt={item.product_uid.name}
-                            className="w-10 h-10 rounded-md object-cover"
-                            onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
-                          />
-                        )}
-                        <span className="font-medium">{item.product_uid.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <PriceDisplay price={item.sale_price} />
-                    </TableCell>
-                    <TableCell className="text-right">{item.stock}</TableCell>
-                    <TableCell className="text-right">
-                      <PriceDisplay price={item.sale_price * item.stock} />
-                    </TableCell>
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {selectedOrder?.products.map((item) => (
+                    <TableRow key={item._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {item.product_uid.image && (
+                            <img
+                              src={getImageUrl(item.product_uid.image)}
+                              alt={item.product_uid.name}
+                              className="w-10 h-10 rounded-md object-cover"
+                              onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                            />
+                          )}
+                          <span className="font-medium">{item.product_uid.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <PriceDisplay price={item.sale_price} />
+                      </TableCell>
+                      <TableCell className="text-right">{item.stock}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-4">
+              {selectedOrder?.products.map((item) => (
+                <div key={item._id} className="flex items-start gap-3 border-b pb-3 last:border-0">
+                  {item.product_uid.image && (
+                    <img
+                      src={getImageUrl(item.product_uid.image)}
+                      alt={item.product_uid.name}
+                      className="w-16 h-16 rounded-md object-cover shrink-0"
+                      onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{item.product_uid.name}</p>
+                    <div className="flex justify-between mt-2 text-sm">
+                      <div className="text-muted-foreground">
+                        {item.stock} x <PriceDisplay price={item.sale_price} />
+                      </div>
+                      <div className="font-medium">
+                        <PriceDisplay price={item.sale_price * item.stock} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <DialogFooter className="flex items-center justify-between sm:justify-between w-full border-t pt-4 mt-4">

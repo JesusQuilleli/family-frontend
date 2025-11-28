@@ -25,10 +25,18 @@ export const useAdminDashboard = () => {
       queryFn: () => getProductsAction({ page: 1, limit: 5 }),
    });
 
+   // Calculate pending payments from the stats array
+   const pendingPaymentsCount = paymentStats?.stats?.reduce((acc: number, curr: any) => {
+      if (!curr._id.verified) {
+         return acc + curr.count;
+      }
+      return acc;
+   }, 0) || 0;
+
    return {
       stats: {
-         totalSales: paymentStats?.totalAmount || 0,
-         pendingPayments: paymentStats?.pendingCount || 0,
+         totalSales: paymentStats?.verifiedAmount || 0,
+         pendingPayments: pendingPaymentsCount,
          pendingOrders: ordersData?.orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length || 0, // Approximation if no dedicated endpoint
          activeClients: usersData?.totalUsers || 0,
       },

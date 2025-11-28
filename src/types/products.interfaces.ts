@@ -13,7 +13,7 @@ export interface Product {
 export interface ProductBackend {
    _id: string;
    user_uid: string;
-   category_id: Category;
+   category_id: Category | null;
    name: string;
    description: string;
    purchase_price: number;

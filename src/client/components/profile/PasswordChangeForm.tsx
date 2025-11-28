@@ -1,14 +1,25 @@
 import { useState } from 'react';
 import { useProfile } from '../../../hooks/useProfile';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+
+import { useAuthStore } from '../../../auth/store/auth.store';
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 export const PasswordChangeForm = () => {
    const { changePassword } = useProfile();
+   const logout = useAuthStore(state => state.logout);
+   const navigate = useNavigate();
    const [currentPassword, setCurrentPassword] = useState('');
    const [newPassword, setNewPassword] = useState('');
    const [confirmPassword, setConfirmPassword] = useState('');
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
+
+   // Visibility states
+   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+   const [showNewPassword, setShowNewPassword] = useState(false);
+   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -26,15 +37,31 @@ export const PasswordChangeForm = () => {
 
       setLoading(true);
       try {
-         changePassword({ currentPassword, newPassword });
-         setCurrentPassword('');
-         setNewPassword('');
-         setConfirmPassword('');
+         changePassword({ currentPassword, newPassword }, {
+            onSuccess: async () => {
+               setCurrentPassword('');
+               setNewPassword('');
+               setConfirmPassword('');
+
+               await Swal.fire({
+                  title: 'Contraseña actualizada',
+                  text: 'Tu sesión se cerrará para aplicar los cambios. Por favor, inicia sesión nuevamente con tu nueva contraseña.',
+                  icon: 'success',
+                  confirmButtonText: 'Entendido'
+               });
+               logout();
+               navigate('/auth/login');
+            }
+         });
       } catch (err) {
          // Error is handled by the mutation in useProfile
       } finally {
          setLoading(false);
       }
+   };
+
+   const toggleVisibility = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+      setter(prev => !prev);
    };
 
    return (
@@ -53,12 +80,24 @@ export const PasswordChangeForm = () => {
                <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                     type="password"
+                     type={showCurrentPassword ? "text" : "password"}
                      value={currentPassword}
                      onChange={(e) => setCurrentPassword(e.target.value)}
-                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                     className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                      required
+                     maxLength={16}
                   />
+                  <button
+                     type="button"
+                     onClick={() => toggleVisibility(setShowCurrentPassword)}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                     {showCurrentPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                     ) : (
+                        <Eye className="w-4 h-4" />
+                     )}
+                  </button>
                </div>
             </div>
 
@@ -69,12 +108,24 @@ export const PasswordChangeForm = () => {
                <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                     type="password"
+                     type={showNewPassword ? "text" : "password"}
                      value={newPassword}
                      onChange={(e) => setNewPassword(e.target.value)}
-                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                     className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                      required
+                     maxLength={16}
                   />
+                  <button
+                     type="button"
+                     onClick={() => toggleVisibility(setShowNewPassword)}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                     {showNewPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                     ) : (
+                        <Eye className="w-4 h-4" />
+                     )}
+                  </button>
                </div>
             </div>
 
@@ -85,12 +136,24 @@ export const PasswordChangeForm = () => {
                <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                     type="password"
+                     type={showConfirmPassword ? "text" : "password"}
                      value={confirmPassword}
                      onChange={(e) => setConfirmPassword(e.target.value)}
-                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                     className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                      required
+                     maxLength={16}
                   />
+                  <button
+                     type="button"
+                     onClick={() => toggleVisibility(setShowConfirmPassword)}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                     {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                     ) : (
+                        <Eye className="w-4 h-4" />
+                     )}
+                  </button>
                </div>
             </div>
 

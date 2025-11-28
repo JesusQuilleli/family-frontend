@@ -1,4 +1,4 @@
-import { Cloud, Loader2 } from "lucide-react";
+import { Cloud } from "lucide-react";
 
 export const ServerWakeUp = () => {
    return (
@@ -6,9 +6,6 @@ export const ServerWakeUp = () => {
          <div className="flex flex-col items-center space-y-4 p-8 text-center max-w-md mx-4 bg-card border rounded-lg shadow-lg">
             <div className="relative">
                <Cloud className="h-16 w-16 text-primary animate-pulse" />
-               <div className="absolute -bottom-2 -right-2">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
-               </div>
             </div>
 
             <h2 className="text-2xl font-bold tracking-tight">Iniciando Servidor</h2>

@@ -32,7 +32,7 @@ export const ProductCard = ({
   const { user } = useAuthStore();
   const role = userRole || user?.role;
 
-  console.log(product.image);
+  //console.log(product.image);
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-(--shadow-card-hover) group p-0 gap-0">
@@ -68,7 +68,7 @@ export const ProductCard = ({
           <PriceDisplay price={product.sale_price} className="items-start" />
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{product.category_id.name}</Badge>
+          <Badge variant="secondary">{product.category_id?.name || 'Sin categoría'}</Badge>
           <span className="text-xs text-muted-foreground">Cantidad: {product.stock}</span>
         </div>
       </CardContent>

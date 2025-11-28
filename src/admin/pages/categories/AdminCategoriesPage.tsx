@@ -13,10 +13,12 @@ import { createCategoryAction } from '@/admin/actions/categories/add-category';
 import { updateCategoryAction } from '@/admin/actions/categories/update-category';
 import { deleteCategoryAction } from '@/admin/actions/categories/delete-category';
 import { useSearchParams } from 'react-router';
+import { getImageUrl } from '@/helpers/get-image-url';
 
 interface Category {
    _id: string;
    name: string;
+   image?: string;
    user_uid: string;
    createdAt: string;
 }
@@ -35,12 +37,13 @@ export const AdminCategoriesPage = () => {
 
    const { data, isLoading, isError, error, refetch } = useCategories();
 
+   console.log(data);
+
    const currentQuery = searchParams.get('query') || '';
 
    const handleAddCategory = async (formData: FormData) => {
       try {
-         const name = formData.get('name') as string;
-         const result = await createCategoryAction(name);
+         const result = await createCategoryAction(formData);
 
          if (result.success) {
             toast({
@@ -70,8 +73,7 @@ export const AdminCategoriesPage = () => {
       if (!editingCategory) return;
 
       try {
-         const name = formData.get('name') as string;
-         const result = await updateCategoryAction(editingCategory._id, name);
+         const result = await updateCategoryAction(editingCategory._id, formData);
 
          if (result.success) {
             toast({
@@ -240,11 +242,27 @@ export const AdminCategoriesPage = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                      {data?.categories.map((category) => (
-                        <Card key={category._id} className="hover:shadow-lg transition-shadow">
-                           <CardHeader>
+                        <Card key={category._id} className="hover:shadow-lg transition-shadow overflow-hidden p-0 gap-0">
+                           <div className="aspect-video w-full relative overflow-hidden bg-secondary/20">
+                              {category.image ? (
+                                 <img
+                                    src={getImageUrl(category.image)}
+                                    alt={category.name}
+                                    className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                    onError={(e) => {
+                                       (e.target as HTMLImageElement).style.display = 'none';
+                                       (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                 />
+                              ) : null}
+                              <div className={`w-full h-full flex items-center justify-center bg-secondary/20 ${category.image ? 'hidden' : ''}`}>
+                                 <span className="text-4xl">📦</span>
+                              </div>
+                           </div>
+                           <CardHeader className="p-4 pb-2">
                               <CardTitle className="text-lg">{category.name}</CardTitle>
                            </CardHeader>
-                           <CardContent>
+                           <CardContent className="p-4 pt-0 pb-2">
                               <p className="text-sm text-muted-foreground">
                                  Creada: {new Date(category.createdAt).toLocaleDateString('es-ES', {
                                     year: 'numeric',
@@ -253,7 +271,7 @@ export const AdminCategoriesPage = () => {
                                  })}
                               </p>
                            </CardContent>
-                           <CardFooter className="flex gap-2">
+                           <CardFooter className="flex gap-2 p-4 pt-0">
                               <Button
                                  variant="outline"
                                  size="sm"

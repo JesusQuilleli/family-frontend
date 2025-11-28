@@ -143,10 +143,10 @@ export const OrderDetailsDialog = ({ children, order }: OrderDetailsDialogProps)
                   <div className="space-y-1.5">
 
                      <div className="flex justify-between font-medium text-lg pt-2">
-                        <span>Total</span>
+                        <span>Total de la compra</span>
                         <PriceDisplay price={order.total} className="items-end" />
                      </div>
-                     {order.remaining < order.total && (
+                     {order.status !== 'pagado' && order.remaining < order.total && (
                         <div className="flex justify-between text-sm text-muted-foreground">
                            <span>Restante por pagar</span>
                            <PriceDisplay price={order.remaining} className="items-end" />

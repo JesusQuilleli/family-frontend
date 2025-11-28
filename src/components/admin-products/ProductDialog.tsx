@@ -48,6 +48,7 @@ export const ProductDialog = ({
 }: ProductDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: categoriesData, isLoading: loadingCategories } = useCategories();
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -64,6 +65,7 @@ export const ProductDialog = ({
   // Resetear formulario cuando se abre/cierra o cambia el producto a editar
   useEffect(() => {
     if (open) {
+      setImageRemoved(false);
       if (editProduct) {
         const categoryId = typeof editProduct.category_id === 'object'
           ? editProduct.category_id?._id || ''
@@ -106,10 +108,19 @@ export const ProductDialog = ({
       // Agregar imagen si existe
       if (data.image && data.image.length > 0) {
         formData.append('image', data.image[0]);
+      } else if (imageRemoved) {
+        console.log('Appending delete_image flag');
+        formData.append('delete_image', 'true');
+      }
+
+      // Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
       }
 
       await onSave(formData);
       form.reset();
+      setImageRemoved(false);
     } catch (error) {
       console.error('Error al guardar producto:', error);
     } finally {
@@ -304,8 +315,10 @@ export const ProductDialog = ({
                           // Si hay archivo, lo asignamos al array que espera zod/backend
                           if (file) {
                             onChange([file]);
+                            setImageRemoved(false);
                           } else {
                             onChange(undefined);
+                            setImageRemoved(true);
                           }
                         }}
                       />
