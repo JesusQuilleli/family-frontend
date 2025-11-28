@@ -71,38 +71,40 @@ export const HomePageClient = () => {
         <div className="lg:col-span-2 space-y-8">
 
           {/* Quick Categories */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-lg">Categorías</h3>
-              <Link to="/client/productos">
-                <Button variant="link" className="h-auto p-0 text-primary">
-                  Ver todas
-                </Button>
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {categories.slice(0, 8).map((category, index) => (
-                <Link key={category._id} to={`/client/productos?categoryId=${category._id}`}>
-                  <Card className="hover:bg-accent/50 transition-colors cursor-pointer border-none shadow-sm bg-secondary/20">
-                    <CardContent className="p-4 flex flex-col items-center justify-center gap-3 text-center h-full">
-                      <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center text-2xl shadow-sm overflow-hidden">
-                        {category.image ? (
-                          <img
-                            src={getImageUrl(category.image)}
-                            alt={category.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span>{defaultCategoryIcons[index % defaultCategoryIcons.length]}</span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium leading-none">{category.name}</span>
-                    </CardContent>
-                  </Card>
+          {categories.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Categorías</h3>
+                <Link to="/client/productos">
+                  <Button variant="link" className="h-auto p-0 text-primary">
+                    Ver todas
+                  </Button>
                 </Link>
-              ))}
-            </div>
-          </section>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {categories.slice(0, 8).map((category, index) => (
+                  <Link key={category._id} to={`/client/productos?categoryId=${category._id}`}>
+                    <Card className="hover:bg-accent/50 transition-colors cursor-pointer border-none shadow-sm bg-secondary/20">
+                      <CardContent className="p-4 flex flex-col items-center justify-center gap-3 text-center h-full">
+                        <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center text-2xl shadow-sm overflow-hidden">
+                          {category.image ? (
+                            <img
+                              src={getImageUrl(category.image)}
+                              alt={category.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span>{defaultCategoryIcons[index % defaultCategoryIcons.length]}</span>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium leading-none">{category.name}</span>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Recent Orders Status */}
           <Card>

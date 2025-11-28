@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOrdersAction } from "@/client/actions/orders/get-orders";
-import { getProductsAction } from "@/actions/get-products";
 
 export const useClientDashboard = () => {
    const { data: ordersData, isLoading: isLoadingOrders } = useQuery({

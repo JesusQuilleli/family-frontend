@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Check, X, Filter, DollarSign, CreditCard, Calendar, User, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Check, X, Filter, DollarSign, CreditCard, Calendar, User, Image as ImageIcon } from 'lucide-react';
 import {
   Select,
   SelectContent,

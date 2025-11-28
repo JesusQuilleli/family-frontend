@@ -35,7 +35,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { CreditCard, Filter, X, Trash2, Image as ImageIcon, Calendar, Package, Hash } from 'lucide-react';
+import { CreditCard, Filter, X, Trash2, Image as ImageIcon, Calendar, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Payment } from '@/interfaces/payments.interface';
 import { PriceDisplay } from '@/components/common/PriceDisplay';

@@ -7,10 +7,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, Loader2 } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
-import { formatCurrency } from "@/helpers/format-currency";
 import { useState } from "react";
 import { createOrder } from "@/client/actions/orders/create-order";
 import { useToast } from "@/hooks/use-toast";

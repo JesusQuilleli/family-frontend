@@ -22,8 +22,15 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
    useEffect(() => {
       if (authStatus === 'authenticated' && token) {
          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-         // Eliminar /api si existe para conectar a la raíz
-         const socketUrl = apiUrl.replace('/api', '');
+
+         let socketUrl = apiUrl;
+         try {
+            const url = new URL(apiUrl);
+            socketUrl = url.origin;
+         } catch (error) {
+            console.error('❌ URL de API inválida:', apiUrl);
+            socketUrl = apiUrl.replace('/api', '');
+         }
 
          console.log('🔌 Intentando conectar socket...', socketUrl);
 
