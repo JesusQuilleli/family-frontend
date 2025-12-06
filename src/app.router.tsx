@@ -20,6 +20,8 @@ import { AdminClientDetailsPage } from "./admin/pages/clients/AdminClientDetails
 import ForgotPasswordPage from "./auth/pages/ForgotPasswordPage";
 import ResetPasswordPage from "./auth/pages/ResetPasswordPage";
 import { AdminPaymentsPage } from "./admin/pages/payments/AdminPaymentsPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import { PremiumPage } from "./pages/PremiumPage";
 
 export const appRouter = createBrowserRouter([
 
@@ -85,6 +87,14 @@ export const appRouter = createBrowserRouter([
         path: 'perfil',
         element: <ClientProfilePage />
       },
+      {
+        path: 'notificaciones',
+        element: <NotificationsPage />
+      },
+      {
+        path: 'premium',
+        element: <PremiumPage />
+      }
 
     ]
   },

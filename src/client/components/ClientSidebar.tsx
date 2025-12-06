@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, Settings2, User, ChevronDown, Key } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, Settings2, User, ChevronDown, Key, Bell } from "lucide-react";
 import { NavLink } from "../../components/NavLink";
 import { useLocation, useNavigate } from "react-router";
 import { useState } from "react";
@@ -30,6 +30,7 @@ const items = [
    { title: "Productos", url: `/client/productos`, icon: ShoppingBag },
    { title: "Pedidos", url: `/client/pedidos`, icon: Package },
    { title: "Pagos", url: `/client/pagos`, icon: CreditCard },
+   { title: "Notificaciones", url: `/client/notificaciones`, icon: Bell },
    {
       title: "Configuración",
       icon: Settings2,

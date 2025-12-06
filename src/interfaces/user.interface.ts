@@ -4,6 +4,8 @@ export interface User {
    email?: string;
    role: string;
    phone?: string;
+   isPremium?: boolean;
+   membershipExpiresAt?: string | Date;
    adminAsociado?: { uid: string, name: string, phone?: string } | null;
    exchangeRates?: {
       tasaBs: number;

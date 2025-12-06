@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
 import { updateProfileAction, requestAccountDeletionAction } from '../../../auth/actions/auth-actions';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../auth/store/auth.store';
+import { LoadingSpinner } from '@/components/admin-products/LoadingSpinner';
 
 export const ClientProfilePage = () => {
    const { user, isLoading } = useProfile();
@@ -95,9 +96,7 @@ export const ClientProfilePage = () => {
 
    if (isLoading) {
       return (
-         <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-         </div>
+         <LoadingSpinner title="Cargando perfil..." />
       );
    }
 

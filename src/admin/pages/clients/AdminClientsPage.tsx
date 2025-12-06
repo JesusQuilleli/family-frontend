@@ -10,7 +10,7 @@ import {
    TableRow,
 } from "@/components/ui/table";
 import { Link } from "react-router-dom";
-import { Search, AlertTriangle, Check, X, Trash2 } from "lucide-react";
+import { Search, AlertTriangle, Check, X, Trash2, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FamilyApi } from "@/api/family.api";
 import Swal from "sweetalert2";
@@ -21,6 +21,7 @@ import {
    TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoadingSpinner } from "@/components/admin-products/LoadingSpinner";
 
 export const AdminClientsPage = () => {
    const {
@@ -66,6 +67,20 @@ export const AdminClientsPage = () => {
       }
    });
 
+   const togglePremiumMutation = useMutation({
+      mutationFn: async (userId: string) => {
+         const { data } = await FamilyApi.post('/membership/admin/toggle-premium', { userId });
+         return data;
+      },
+      onSuccess: (data) => {
+         queryClient.invalidateQueries({ queryKey: ['users'] });
+         Swal.fire('Actualizado', data.msg, 'success');
+      },
+      onError: (error: any) => {
+         Swal.fire('Error', error.response?.data?.msg || 'Error al cambiar membresía', 'error');
+      }
+   });
+
    const handleApproveDeletion = (userId: string) => {
       Swal.fire({
          title: '¿Aprobar eliminación?',
@@ -100,7 +115,7 @@ export const AdminClientsPage = () => {
       });
    };
 
-   if (isLoading) return <div className="p-8 text-center">Cargando clientes...</div>;
+   if (isLoading) return <LoadingSpinner title="Cargando clientes..." />;
 
    return (
       <div className="container mx-auto p-6 space-y-6">
@@ -134,6 +149,7 @@ export const AdminClientsPage = () => {
                      <TableHead>Nombre</TableHead>
                      <TableHead>Email</TableHead>
                      <TableHead>Estado</TableHead>
+                     {!showDeleted && <TableHead>Membresía</TableHead>}
                      {showDeleted && <TableHead>Fecha Eliminación</TableHead>}
                      <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -177,6 +193,19 @@ export const AdminClientsPage = () => {
                                  <span className="text-green-600 text-xs">Activo</span>
                               )}
                            </TableCell>
+                           {!showDeleted && (
+                              <TableCell>
+                                 <Button
+                                    variant={user.isPremium ? "default" : "outline"}
+                                    size="sm"
+                                    className={user.isPremium ? "bg-yellow-500 hover:bg-yellow-600 border-none" : ""}
+                                    onClick={() => togglePremiumMutation.mutate(user.uid)}
+                                    title={user.isPremium ? "Desactivar Premium" : "Activar Premium"}
+                                 >
+                                    <Star className={`h-4 w-4 ${user.isPremium ? "fill-white text-white" : "text-gray-400"}`} />
+                                 </Button>
+                              </TableCell>
+                           )}
                            {showDeleted && (
                               <TableCell>
                                  {user.deletedAt ? new Date(user.deletedAt).toLocaleDateString() : 'N/A'}
