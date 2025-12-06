@@ -33,7 +33,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
          }
 
          if (import.meta.env.DEV) {
-            console.log('🔌 Intentando conectar socket...', socketUrl);
+            // console.log('🔌 Intentando conectar socket...', socketUrl);
          }
 
          const newSocket = io(socketUrl, {
@@ -46,7 +46,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
          setSocket(newSocket);
 
          newSocket.on('connect', () => {
-            if (import.meta.env.DEV) console.log('✅ Socket conectado:', newSocket.id);
+            // if (import.meta.env.DEV) console.log('✅ Socket conectado:', newSocket.id);
             setOnline(true);
          });
 
@@ -55,7 +55,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
          });
 
          newSocket.on('disconnect', () => {
-            if (import.meta.env.DEV) console.log('❌ Socket desconectado');
+            // if (import.meta.env.DEV) console.log('❌ Socket desconectado');
             setOnline(false);
          });
 

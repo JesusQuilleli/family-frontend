@@ -62,14 +62,15 @@ export const appRouter = createBrowserRouter([
   //Client Routers 
   {
     path: '/client',
-    element: <ClientLayout />,
+    element: (
+      <ProtectedRouteClient>
+        <ClientLayout />
+      </ProtectedRouteClient>
+    ),
     children: [
       {
         index: true,
-        element: (
-          <ProtectedRouteClient>
-            <HomePageClient />
-          </ProtectedRouteClient>)
+        element: <HomePageClient />
       },
       {
         path: 'productos',
@@ -102,14 +103,15 @@ export const appRouter = createBrowserRouter([
   //Admin Routers 
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRouteAdmin>
+        <AdminLayout />
+      </ProtectedRouteAdmin>
+    ),
     children: [
       {
         index: true,
-        element: (
-          <ProtectedRouteAdmin>
-            <HomePageAdmin />
-          </ProtectedRouteAdmin>)
+        element: <HomePageAdmin />
       },
       {
         path: 'productos',

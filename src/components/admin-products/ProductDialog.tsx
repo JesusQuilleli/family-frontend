@@ -109,14 +109,14 @@ export const ProductDialog = ({
       if (data.image && data.image.length > 0) {
         formData.append('image', data.image[0]);
       } else if (imageRemoved) {
-        console.log('Appending delete_image flag');
+        // console.log('Appending delete_image flag');
         formData.append('delete_image', 'true');
       }
 
       // Log FormData contents
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(`${key}: ${value}`);
+      // }
 
       await onSave(formData);
       form.reset();
