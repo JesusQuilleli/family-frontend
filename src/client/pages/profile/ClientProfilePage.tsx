@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useProfile } from '../../../hooks/useProfile';
-import { Loader2, Pencil, Trash2, X } from 'lucide-react';
+import { Pencil, Trash2, X } from 'lucide-react';
 import { PasswordChangeForm } from '../../components/profile/PasswordChangeForm';
 import { ExchangeRateForm } from '../../../components/profile/ExchangeRateForm';
 import { PaymentConfigForm } from '../../../admin/components/profile/PaymentConfigForm';
