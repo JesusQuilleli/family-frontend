@@ -7,6 +7,7 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 export const usePushNotifications = () => {
    const [subscription, setSubscription] = useState<PushSubscription | null>(null);
    const [isSupported, setIsSupported] = useState(false);
+   const [permission, setPermission] = useState(Notification.permission);
 
    useEffect(() => {
       if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -21,7 +22,7 @@ export const usePushNotifications = () => {
          const sub = await registration.pushManager.getSubscription();
          setSubscription(sub);
       } catch (error) {
-         console.error('Error getting service worker subscription:', error);
+         if (import.meta.env.DEV) console.error('Error getting service worker subscription:', error);
       }
    };
 
@@ -46,25 +47,38 @@ export const usePushNotifications = () => {
          return;
       }
 
+      if (!VAPID_PUBLIC_KEY) {
+         if (import.meta.env.DEV) console.error('VAPID_PUBLIC_KEY is missing');
+         toast.error('Error de configuración: Falta la clave pública VAPID.');
+         return;
+      }
+
       try {
-         console.log('Requesting notification permission...');
-         const permission = await Notification.requestPermission();
-         if (permission !== 'granted') {
-            if (permission === 'denied') {
-               toast.error('Las notificaciones están bloqueadas. Por favor habilítalas en la configuración de tu navegador (icono del candado junto a la URL).');
+         if (import.meta.env.DEV) console.log('Requesting notification permission...');
+         const perm = await Notification.requestPermission();
+         setPermission(perm);
+
+         if (perm !== 'granted') {
+            if (perm === 'denied') {
+               toast.error('Las notificaciones están bloqueadas. Por favor habilítalas en la configuración de tu navegador.');
             } else {
                toast.error('Permiso de notificaciones no otorgado.');
             }
             return;
          }
 
-         console.log('Waiting for SW ready...');
+         if (import.meta.env.DEV) console.log('Waiting for SW ready...');
          const registration = await navigator.serviceWorker.ready;
-         console.log('SW ready, subscribing...');
-         const sub = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-         });
+         if (import.meta.env.DEV) console.log('SW ready, subscribing...');
+
+         let sub = await registration.pushManager.getSubscription();
+
+         if (!sub) {
+            sub = await registration.pushManager.subscribe({
+               userVisibleOnly: true,
+               applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+         }
 
          setSubscription(sub);
 
@@ -73,15 +87,40 @@ export const usePushNotifications = () => {
 
          toast.success('Notificaciones activadas correctamente.');
 
-      } catch (error) {
-         console.error('Error subscribing to push:', error);
-         toast.error('Error al activar notificaciones.');
+      } catch (error: any) {
+         if (import.meta.env.DEV) console.error('Error subscribing to push:', error);
+
+         // If subscription failed, it might be due to existing subscription with different key
+         // Only try to unsubscribe and resubscribe if we haven't already succeeded
+         if (error.name === 'InvalidStateError' || error.message?.includes('Registration failed')) {
+            try {
+               const registration = await navigator.serviceWorker.ready;
+               const existingSub = await registration.pushManager.getSubscription();
+               if (existingSub) {
+                  await existingSub.unsubscribe();
+                  // Retry subscription once
+                  const newSub = await registration.pushManager.subscribe({
+                     userVisibleOnly: true,
+                     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                  });
+                  setSubscription(newSub);
+                  await FamilyApi.post('/notifications/subscribe', newSub);
+                  toast.success('Notificaciones activadas correctamente (recuperado).');
+                  return;
+               }
+            } catch (retryError) {
+               if (import.meta.env.DEV) console.error('Retry failed:', retryError);
+            }
+         }
+
+         toast.error(`Error al activar notificaciones: ${error?.message || 'Error desconocido'}`);
       }
    };
 
    return {
       subscription,
       subscribeToPush,
-      isSupported
+      isSupported,
+      permission
    };
 };

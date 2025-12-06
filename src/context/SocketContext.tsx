@@ -28,11 +28,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             const url = new URL(apiUrl);
             socketUrl = url.origin;
          } catch (error) {
-            console.error('❌ URL de API inválida:', apiUrl);
+            if (import.meta.env.DEV) console.error('❌ URL de API inválida:', apiUrl);
             socketUrl = apiUrl.replace('/api', '');
          }
 
-         console.log('🔌 Intentando conectar socket...', socketUrl);
+         if (import.meta.env.DEV) {
+            console.log('🔌 Intentando conectar socket...', socketUrl);
+         }
 
          const newSocket = io(socketUrl, {
             auth: {
@@ -44,21 +46,21 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
          setSocket(newSocket);
 
          newSocket.on('connect', () => {
-            console.log('✅ Socket conectado:', newSocket.id);
+            if (import.meta.env.DEV) console.log('✅ Socket conectado:', newSocket.id);
             setOnline(true);
          });
 
          newSocket.on('connect_error', (err) => {
-            console.error('❌ Error de conexión socket:', err.message);
+            if (import.meta.env.DEV) console.error('❌ Error de conexión socket:', err.message);
          });
 
          newSocket.on('disconnect', () => {
-            console.log('❌ Socket desconectado');
+            if (import.meta.env.DEV) console.log('❌ Socket desconectado');
             setOnline(false);
          });
 
          newSocket.on('force-logout', (payload: any) => {
-            console.log('🚪 Force logout recibido:', payload);
+            if (import.meta.env.DEV) console.log('🚪 Force logout recibido:', payload);
             useAuthStore.getState().logout();
             // Opcional: Mostrar alerta o redirigir
             alert(payload.msg || 'Tu sesión ha sido cerrada.');

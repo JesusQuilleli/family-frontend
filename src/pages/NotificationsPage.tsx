@@ -5,6 +5,7 @@ import { Bell, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { FamilyApi } from '../api/family.api';
+import { LoadingSpinner } from '@/components/admin-products/LoadingSpinner';
 
 interface Notification {
    _id: string;
@@ -18,7 +19,7 @@ interface Notification {
 
 const NotificationsPage = () => {
    const queryClient = useQueryClient();
-   const { subscribeToPush, subscription, isSupported } = usePushNotifications();
+   const { subscribeToPush, subscription, isSupported, permission } = usePushNotifications();
 
    const { data, isLoading } = useQuery({
       queryKey: ['notifications'],
@@ -42,7 +43,7 @@ const NotificationsPage = () => {
       toast.success('Todas las notificaciones marcadas como leídas');
    };
 
-   if (isLoading) return <div className="p-4 text-center">Cargando notificaciones...</div>;
+   if (isLoading) return <LoadingSpinner title='Cargando notificaciones...' />;
 
    return (
       <div className="container mx-auto p-4 max-w-2xl">
@@ -51,7 +52,7 @@ const NotificationsPage = () => {
                <Bell className="w-6 h-6" /> Notificaciones
             </h1>
             <div className="flex gap-2">
-               {isSupported && !subscription && (
+               {isSupported && !subscription && permission !== 'granted' && (
                   <button
                      onClick={subscribeToPush}
                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"

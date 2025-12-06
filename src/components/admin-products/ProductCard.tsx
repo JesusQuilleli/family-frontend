@@ -114,8 +114,13 @@ export const ProductCard = ({
                 onClick={() => onAddToCart?.(product)}
                 disabled={product.stock === 0}
               >
-                <ShoppingCart className="w-4 h-4 mr-1" />
-                {product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+                <ShoppingCart className="w-4 h-4 mr-0 sm:mr-1" />
+                <span className="hidden sm:inline">
+                  {product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+                </span>
+                <span className="inline sm:hidden">
+                  {product.stock === 0 ? 'Agotado' : 'Agregar'}
+                </span>
               </Button>
             )}
           </>
