@@ -11,9 +11,8 @@ const productBaseSchema = z.object({
       .min(10, "La descripción debe tener al menos 10 caracteres")
       .max(500, "La descripción no puede exceder 500 caracteres"),
 
-   category_id: z
-      .string()
-      .min(1, "Debes seleccionar una categoría"),
+   category_id: z.string().optional(), // Deprecated but kept for compatibility
+   categories: z.array(z.string()).min(1, "Debes seleccionar al menos una categoría"),
 
    purchase_price: z
       .string()

@@ -14,9 +14,19 @@ import { createOrder } from "@/client/actions/orders/create-order";
 import { useToast } from "@/hooks/use-toast";
 import { PriceDisplay } from "@/components/common/PriceDisplay";
 import { getImageUrl } from "@/helpers/get-image-url";
+import {
+   AlertDialog,
+   AlertDialogCancel,
+   AlertDialogContent,
+   AlertDialogDescription,
+   AlertDialogFooter,
+   AlertDialogHeader,
+   AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const CartSheet = () => {
    const [isLoading, setIsLoading] = useState(false);
+   const [showConfirmation, setShowConfirmation] = useState(false);
    const { toast } = useToast();
    const {
       items,
@@ -47,6 +57,7 @@ export const CartSheet = () => {
          if (response.ok) {
             clearCart();
             setIsOpen(false);
+            setShowConfirmation(false);
             toast({
                title: "¡Pedido realizado!",
                description: response.msg || "Tu pedido ha sido creado exitosamente.",
@@ -184,7 +195,7 @@ export const CartSheet = () => {
                      <Button
                         className="w-full group"
                         size="lg"
-                        onClick={handleCreateOrder}
+                        onClick={() => setShowConfirmation(true)}
                         disabled={isLoading}
                      >
                         {isLoading ? (
@@ -203,6 +214,42 @@ export const CartSheet = () => {
                </div>
             )}
          </SheetContent>
+
+         <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+            <AlertDialogContent>
+               <AlertDialogHeader>
+                  <AlertDialogTitle>¿Listo para procesar tu pedido?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                     ¿Deseas confirmar tu pedido ahora o prefieres seguir viendo más productos?
+                  </AlertDialogDescription>
+               </AlertDialogHeader>
+               <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                  <AlertDialogCancel
+                     onClick={() => {
+                        setIsOpen(false);
+                        setShowConfirmation(false);
+                     }}
+                     className="w-full sm:w-auto"
+                  >
+                     Seguir comprando
+                  </AlertDialogCancel>
+                  <Button
+                     onClick={handleCreateOrder}
+                     disabled={isLoading}
+                     className="w-full sm:w-auto bg-primary text-primary-foreground"
+                  >
+                     {isLoading ? (
+                        <>
+                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                           Procesando...
+                        </>
+                     ) : (
+                        "Confirmar Pedido"
+                     )}
+                  </Button>
+               </AlertDialogFooter>
+            </AlertDialogContent>
+         </AlertDialog>
       </Sheet>
    );
 };

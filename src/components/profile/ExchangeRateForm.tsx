@@ -9,6 +9,8 @@ interface ExchangeRateFormProps {
    initialRates?: {
       tasaBs: number;
       tasaPesos: number;
+      tasaCopToBs?: number;
+      adminViewPreference?: string;
       clientCurrency?: string;
    };
 }
@@ -16,6 +18,8 @@ interface ExchangeRateFormProps {
 export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
    const [tasaBs, setTasaBs] = useState(initialRates?.tasaBs || 0);
    const [tasaPesos, setTasaPesos] = useState(initialRates?.tasaPesos || 0);
+   const [tasaCopToBs, setTasaCopToBs] = useState(initialRates?.tasaCopToBs || 0);
+   const [adminViewPreference, setAdminViewPreference] = useState(initialRates?.adminViewPreference || "USD_TO_BS");
    const [clientCurrency, setClientCurrency] = useState(initialRates?.clientCurrency || "VES");
    const [loading, setLoading] = useState(false);
 
@@ -27,6 +31,8 @@ export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
          await FamilyApi.put('/exchange-rates/update', {
             tasaBs: Number(tasaBs),
             tasaPesos: Number(tasaPesos),
+            tasaCopToBs: Number(tasaCopToBs),
+            adminViewPreference,
             clientCurrency
          });
          toast.success("Tasas de cambio actualizadas correctamente");
@@ -75,7 +81,45 @@ export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
                   }}
                />
             </div>
-            <div className="space-y-2 md:col-span-2">
+
+            <div className="space-y-2">
+               <Label htmlFor="tasaCopToBs">Tasa COP a Bs</Label>
+               <Input
+                  id="tasaCopToBs"
+                  type="number"
+                  step="0.01"
+                  value={tasaCopToBs}
+                  onChange={(e) => setTasaCopToBs(Number(e.target.value))}
+                  required
+                  maxLength={7}
+                  onInput={(e) => {
+                     if (e.currentTarget.value.length > 7) {
+                        e.currentTarget.value = e.currentTarget.value.slice(0, 7);
+                     }
+                  }}
+               />
+               <p className="text-xs text-muted-foreground">
+                  Conversión inversa: Precios en COP se mostrarán también en Bs usando esta tasa (Ej: 35.000 / 12).
+               </p>
+            </div>
+
+            <div className="space-y-2">
+               <Label htmlFor="adminViewPreference">Preferencia de Vista (Admin)</Label>
+               <select
+                  id="adminViewPreference"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={adminViewPreference}
+                  onChange={(e) => setAdminViewPreference(e.target.value)}
+               >
+                  <option value="USD_TO_BS">Desde Dólares (Estándar)</option>
+                  <option value="COP_TO_BS">Desde Pesos (COP / Tasa)</option>
+               </select>
+               <p className="text-xs text-muted-foreground">
+                  Cómo quieres ver los precios en Bolívares en TU panel.
+               </p>
+            </div>
+
+            <div className="space-y-2">
                <Label htmlFor="clientCurrency">Moneda para Clientes</Label>
                <select
                   id="clientCurrency"
@@ -88,7 +132,7 @@ export const ExchangeRateForm = ({ initialRates }: ExchangeRateFormProps) => {
                   <option value="COP">Pesos (COP)</option>
                </select>
                <p className="text-xs text-muted-foreground">
-                  Esta es la moneda que verán tus clientes en la tienda.
+                  Esta es la moneda principal que verán tus clientes.
                </p>
             </div>
          </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 import { getProductsAction } from '@/actions/get-products';
@@ -41,6 +41,10 @@ export const ClientProductsPage = () => {
   });
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useCategories();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page, query, categoryId]);
 
   const handleAddToCart = (product: ProductBackend) => {
     addItem(product);

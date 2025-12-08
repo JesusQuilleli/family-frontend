@@ -45,13 +45,20 @@ export const LoginPage = () => {
         return;
       }
 
-      if (result.user.role !== "admin") {
-        navigate("/client");
+      if (result.user.role === "superadmin") {
+        toast.success(result.msg || "Inicio de sesión exitoso");
+        navigate("/super-admin");
         return;
       }
 
-      toast.success(result.msg || "Inicio de sesión exitoso");
-      navigate("/admin");
+      if (result.user.role === "admin") {
+        toast.success(result.msg || "Inicio de sesión exitoso");
+        navigate("/admin");
+        return;
+      }
+
+      // Si es cliente (o cualquier otro rol)
+      navigate("/client");
 
     } catch (error: unknown) {
       console.error("Error inesperado en handleSubmit:", error);

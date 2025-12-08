@@ -4,6 +4,7 @@ export interface Product {
    _id: string;
    user_uid: string;
    category_id: Category | null;
+   categories?: Category[]; // Array of categories
    name: string;
    description: string;
    purchase_price: number;

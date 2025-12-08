@@ -14,6 +14,7 @@ export interface ProductBackend {
    _id: string;
    user_uid: string;
    category_id: Category | null;
+   categories?: Category[]; // Make optional to support legacy products not yet migrated
    name: string;
    description: string;
    purchase_price: number;

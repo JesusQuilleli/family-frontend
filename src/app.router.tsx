@@ -7,7 +7,10 @@ import { ClientLayout } from "./client/layout/ClientLayout";
 import { HomePageClient } from "./client/pages/home/HomePageClient";
 import { AdminLayout } from "./admin/layout/AdminLayout";
 import { HomePageAdmin } from "./admin/pages/home/HomePageAdmin";
-import { ProtectedRouteAdmin, ProtectedRouteClient } from "./components/routes/ProtectedRoute";
+import { ProtectedRouteAdmin, ProtectedRouteClient, ProtectedRouteSuperAdmin } from "./components/routes/ProtectedRoute";
+import { SuperAdminLayout } from "./superadmin/layout/SuperAdminLayout";
+import { SuperAdminVendorsPage } from "./superadmin/pages/SuperAdminVendorsPage";
+import { Navigate } from "react-router";
 import { AdminProductsPage } from "./admin/pages/products/AdminProductsPage";
 import { AdminOrdersPage } from "./admin/pages/orders/AdminOrdersPage";
 import { ClientProductsPage } from "./client/pages/products/ClientProductsPage";
@@ -142,6 +145,26 @@ export const appRouter = createBrowserRouter([
         element: <ClientProfilePage />
       }
 
+    ]
+  },
+
+  //Super Admin Routers
+  {
+    path: '/super-admin',
+    element: (
+      <ProtectedRouteSuperAdmin>
+        <SuperAdminLayout />
+      </ProtectedRouteSuperAdmin>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="vendedores" replace />
+      },
+      {
+        path: 'vendedores',
+        element: <SuperAdminVendorsPage />
+      }
     ]
   }
 

@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ProductBackend } from '@/types/products.interfaces';
+import type { ProductBackend } from '@/interfaces/products.response';
 import { productSchema, type ProductFormData } from '@/schemas/product.schema';
 import {
   Dialog,
@@ -13,13 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -32,6 +26,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ImageUpload } from '@/components/common/ImageUpload';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ProductDialogProps {
   open: boolean;
@@ -59,6 +54,7 @@ export const ProductDialog = ({
       sale_price: '0',
       stock: '0',
       category_id: '',
+      categories: [],
     },
   });
 
@@ -67,9 +63,17 @@ export const ProductDialog = ({
     if (open) {
       setImageRemoved(false);
       if (editProduct) {
-        const categoryId = typeof editProduct.category_id === 'object'
-          ? editProduct.category_id?._id || ''
-          : editProduct.category_id || '';
+        // Lógica para poblar categories: first try array, then legacy single ID
+        let initialCategories: string[] = [];
+
+        if (editProduct.categories && editProduct.categories.length > 0) {
+          initialCategories = editProduct.categories.map(c => {
+            if (typeof c === 'string') return c;
+            return (c as any)._id || String(c);
+          });
+        } else if (editProduct.category_id) {
+          initialCategories = [typeof editProduct.category_id === 'object' ? (editProduct.category_id as any)._id : editProduct.category_id];
+        }
 
         form.reset({
           name: editProduct.name || '',
@@ -77,7 +81,8 @@ export const ProductDialog = ({
           purchase_price: editProduct.purchase_price?.toString() || '0',
           sale_price: editProduct.sale_price?.toString() || '0',
           stock: editProduct.stock?.toString() || '0',
-          category_id: categoryId,
+          category_id: '', // Deprecated field empty
+          categories: initialCategories,
         });
       } else {
         form.reset({
@@ -87,6 +92,7 @@ export const ProductDialog = ({
           sale_price: '0',
           stock: '0',
           category_id: '',
+          categories: [],
         });
       }
     }
@@ -103,7 +109,23 @@ export const ProductDialog = ({
       formData.append('purchase_price', data.purchase_price.toString());
       formData.append('sale_price', data.sale_price.toString());
       formData.append('stock', data.stock.toString());
-      formData.append('category_id', data.category_id);
+
+      // Enviar array de categorías. FormData repite key para arrays o JSON stringify.
+      // Backend espera categories como array. Si usamos multer o body-parser standard,
+      // enviar multiple keys 'categories[]' o 'categories' suele funcionar.
+      // Pero products-service espera el objeto req.body.categories DIRECTAMENTE si es JSON.
+      // Al ser FormData con archivo, multer parsea fields.
+      // Si enviamos multiple 'categories', multer/express lo convierte a array si hay varios, o string si hay uno.
+      // Lo mejor es enviar cada uno.
+      data.categories.forEach(catId => {
+        formData.append('categories', catId);
+      });
+
+      // Agregar legacy category_id (el primero) para compatibilidad si fuera necesario, 
+      // pero el backend ya maneja 'categories'.
+      if (data.categories.length > 0) {
+        formData.append('category_id', data.categories[0]);
+      }
 
       // Agregar imagen si existe
       if (data.image && data.image.length > 0) {
@@ -112,11 +134,6 @@ export const ProductDialog = ({
         // console.log('Appending delete_image flag');
         formData.append('delete_image', 'true');
       }
-
-      // Log FormData contents
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(`${key}: ${value}`);
-      // }
 
       await onSave(formData);
       form.reset();
@@ -191,36 +208,143 @@ export const ProductDialog = ({
                 )}
               />
 
-              {/* Categoría */}
+              {/* Categorías (Multi-select) */}
               <FormField
                 control={form.control}
-                name="category_id"
-                render={({ field }) => (
+                name="categories"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Categoría *</FormLabel>
+                    <FormLabel>Categorías *</FormLabel>
                     {loadingCategories ? (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Cargando categorías...</span>
                       </div>
                     ) : (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una categoría" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categoriesData?.categories.map((category) => (
-                            <SelectItem key={category._id} value={category._id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="border rounded-md p-4">
+                        <ScrollArea className="h-[200px] w-full pr-4">
+                          <div className="space-y-4">
+                            {(() => {
+                              // Group categories manually
+                              const parents = categoriesData?.categories.filter(c => !c.parent_id) || [];
+                              const children = categoriesData?.categories.filter(c => c.parent_id) || [];
+
+                              // Provide a 'Sin Categoría' bucket if needed for older data? No, new data structure.
+                              // Just iterate parents first.
+                              return (
+                                <>
+                                  {/* Root Categories */}
+                                  {parents.map(parent => {
+                                    const myChildren = children.filter(c => {
+                                      if (typeof c.parent_id === 'object' && c.parent_id) return c.parent_id._id === parent._id;
+                                      return c.parent_id === parent._id;
+                                    });
+
+                                    return (
+                                      <div key={parent._id} className="space-y-2">
+                                        <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                          {/* Parent Checkbox - Auto Selects All Children? Optional feature. For now just category itself. */}
+                                          <FormField
+                                            control={form.control}
+                                            name="categories"
+                                            render={({ field }) => (
+                                              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                <FormControl>
+                                                  <Checkbox
+                                                    checked={field.value?.includes(parent._id)}
+                                                    onCheckedChange={(checked) => {
+                                                      return checked
+                                                        ? field.onChange([...field.value, parent._id])
+                                                        : field.onChange(field.value?.filter(v => v !== parent._id))
+                                                    }}
+                                                  />
+                                                </FormControl>
+                                                <FormLabel className="text-sm font-semibold cursor-pointer">
+                                                  {parent.name}
+                                                </FormLabel>
+                                              </FormItem>
+                                            )}
+                                          />
+                                        </h4>
+
+                                        {/* Children */}
+                                        <div className="ml-6 grid grid-cols-1 gap-1 border-l-2 pl-2 border-border">
+                                          {myChildren.map(child => (
+                                            <FormField
+                                              key={child._id}
+                                              control={form.control}
+                                              name="categories"
+                                              render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                  <FormControl>
+                                                    <Checkbox
+                                                      checked={field.value?.includes(child._id)}
+                                                      onCheckedChange={(checked) => {
+                                                        return checked
+                                                          ? field.onChange([...field.value, child._id])
+                                                          : field.onChange(field.value?.filter(v => v !== child._id))
+                                                      }}
+                                                    />
+                                                  </FormControl>
+                                                  <FormLabel className="text-sm font-normal cursor-pointer">
+                                                    {child.name}
+                                                  </FormLabel>
+                                                </FormItem>
+                                              )}
+                                            />
+                                          ))}
+                                          {myChildren.length === 0 && (
+                                            <p className="text-xs text-muted-foreground italic">Sin subcategorías</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* Orphaned Children (Should ideally not happen if logic is strict, but safe fallback) */}
+                                  {children.filter(c => {
+                                    const parentId = typeof c.parent_id === 'object' && c.parent_id ? c.parent_id._id : c.parent_id;
+                                    return !parents.find(p => p._id === parentId);
+                                  }).length > 0 && (
+                                      <div className="space-y-2 mt-4">
+                                        <h4 className="font-semibold text-sm text-destructive">Sin Padre Asignado / Otros</h4>
+                                        <div className="ml-6 grid grid-cols-1 gap-1">
+                                          {children.filter(c => {
+                                            const parentId = typeof c.parent_id === 'object' && c.parent_id ? c.parent_id._id : c.parent_id;
+                                            return !parents.find(p => p._id === parentId);
+                                          }).map(child => (
+                                            <FormField
+                                              key={child._id}
+                                              control={form.control}
+                                              name="categories"
+                                              render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                  <FormControl>
+                                                    <Checkbox
+                                                      checked={field.value?.includes(child._id)}
+                                                      onCheckedChange={(checked) => {
+                                                        return checked
+                                                          ? field.onChange([...field.value, child._id])
+                                                          : field.onChange(field.value?.filter(v => v !== child._id))
+                                                      }}
+                                                    />
+                                                  </FormControl>
+                                                  <FormLabel className="text-sm font-normal">
+                                                    {child.name}
+                                                  </FormLabel>
+                                                </FormItem>
+                                              )}
+                                            />
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </ScrollArea>
+                      </div>
                     )}
                     <FormMessage />
                   </FormItem>

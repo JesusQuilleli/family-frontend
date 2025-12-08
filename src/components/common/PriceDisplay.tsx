@@ -33,21 +33,61 @@ export const PriceDisplay = ({ price, className = "", showBase = true, showOnly 
 
    // If still no specific currency to show (e.g. admin view), show all
    if (!currencyToShow) {
+      // ✅ Admin View Preference Logic
+      if (user?.role === 'admin' && user?.exchangeRates?.adminViewPreference === 'COP_TO_BS') {
+         const tasaCopToBs = user?.exchangeRates?.tasaCopToBs || 1;
+         const priceInBsFromCop = priceInPesos / tasaCopToBs;
+         return (
+            <div className={`flex flex-col ${className}`}>
+               {showBase && <span className="text-green-600 font-bold">{formatCurrency(price)}</span>}
+               <span className="text-blue-600 font-medium text-sm">
+                  {formatCurrencyBs(priceInBsFromCop)} <span className="text-[10px] text-muted-foreground">(desde COP)</span>
+               </span>
+               <span className="text-orange-600 font-medium text-xs">
+                  {formatCurrencyPesos(priceInPesos)} <span className="text-[10px]">COP</span>
+               </span>
+            </div>
+         );
+      }
+
+      // Default Admin View (USD -> Bs)
       return (
          <div className={`flex flex-col ${className}`}>
             {showBase && <span className="text-green-600 font-bold">{formatCurrency(price)}</span>}
             <span className="text-blue-600 font-medium text-sm">{formatCurrencyBs(priceInBs)}</span>
-            <span className="text-orange-600 font-medium text-xs">{formatCurrencyPesos(priceInPesos)}</span>
+            <span className="text-orange-600 font-medium text-xs">
+               {formatCurrencyPesos(priceInPesos)} <span className="text-[10px]">COP</span>
+            </span>
          </div>
       );
    }
 
    // Show specific currency
+   // Show specific currency
+   if (currencyToShow === 'COP') {
+      const tasaCopToBs = user?.exchangeRates?.tasaCopToBs || 0;
+      const showBsFromCop = tasaCopToBs > 0;
+      const priceInBsFromCop = showBsFromCop ? priceInPesos / tasaCopToBs : 0;
+
+      return (
+         <div className={`flex flex-col ${className}`}>
+            <span className="text-orange-600 font-medium">
+               {formatCurrencyPesos(priceInPesos)} <span className="text-xs">COP</span>
+            </span>
+            {showBsFromCop && (
+               <span className="text-blue-600 font-medium text-xs">
+                  {formatCurrencyBs(priceInBsFromCop)}
+                  {user?.role !== 'cliente' && ` (Tasa: ${tasaCopToBs})`}
+               </span>
+            )}
+         </div>
+      );
+   }
+
    return (
       <div className={`flex flex-col ${className}`}>
          {currencyToShow === 'USD' && <span className="text-green-600 font-bold">{formatCurrency(price)}</span>}
          {currencyToShow === 'VES' && <span className="text-blue-600 font-medium">{formatCurrencyBs(priceInBs)}</span>}
-         {currencyToShow === 'COP' && <span className="text-orange-600 font-medium">{formatCurrencyPesos(priceInPesos)}</span>}
       </div>
    );
 };

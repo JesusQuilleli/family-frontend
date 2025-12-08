@@ -102,7 +102,23 @@ export const ProductDetailDialog = ({
               <div className="space-y-2">
                 <div className="flex justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Categoría</span>
-                  <span className="font-medium">{product.category_id?.name || 'Sin categoría'}</span>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {product.categories && product.categories.length > 0 ? (
+                      product.categories.map((cat, index) => {
+                        const catObj = typeof cat === 'object' ? cat : null;
+                        const parent = catObj && (catObj as any).parent_id ? (catObj as any).parent_id : null;
+                        const displayName = parent && typeof parent === 'object' ? `${parent.name} > ${catObj?.name}` : catObj?.name || '...';
+
+                        return (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {displayName}
+                          </Badge>
+                        );
+                      })
+                    ) : (
+                      <Badge variant="outline">{product.category_id?.name || 'Sin categoría'}</Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Disponibilidad</span>

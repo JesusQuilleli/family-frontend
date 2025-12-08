@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // Libraries and Types
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import type { ProductBackend } from '@/types/products.interfaces';
 // Components
@@ -48,29 +48,18 @@ export const AdminProductsPage = () => {
 
   const currentQuery = searchParams.get('query') || '';
   const currentCategory = searchParams.get('categoryId') || '';
+  const page = searchParams.get('page') || '1';
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page, currentQuery, currentCategory]);
 
   const handleAddProduct = async (formData: FormData) => {
     setDialogOpen(false);
     setLoadingAddProduct(true);
     try {
-      const name = formData.get('name') as string;
-      const description = formData.get('description') as string;
-      const purchase_price = Number(formData.get('purchase_price'));
-      const sale_price = Number(formData.get('sale_price'));
-      const category_id = formData.get('category_id') as string;
-      const stock = Number(formData.get('stock'));
-      const image = formData.get('image') as File;
-
       // Llamar a la acción del servidor
-      const result = await createProductAction(
-        name,
-        description,
-        sale_price,
-        purchase_price,
-        category_id,
-        stock,
-        image
-      );
+      const result = await createProductAction(formData);
 
       if (result.success) {
         toast({
@@ -102,25 +91,9 @@ export const AdminProductsPage = () => {
     if (!editingProduct) return;
 
     try {
-      const name = formData.get('name') as string;
-      const description = formData.get('description') as string;
-      const purchase_price = Number(formData.get('purchase_price'));
-      const sale_price = Number(formData.get('sale_price'));
-      const category_id = formData.get('category_id') as string;
-      const stock = Number(formData.get('stock'));
-
-      const imageEntry = formData.get('image');
-      const image = (imageEntry instanceof File && imageEntry.size > 0) ? imageEntry : undefined;
-
       const result = await updateProductAction(
         editingProduct._id,
-        name,
-        description,
-        sale_price,
-        purchase_price,
-        category_id,
-        stock,
-        image
+        formData
       );
 
       if (result.success) {

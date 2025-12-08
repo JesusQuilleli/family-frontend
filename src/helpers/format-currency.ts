@@ -24,5 +24,5 @@ export const formatCurrencyPesos = (value: number) => {
       maximumFractionDigits: 0,
    }).format(value);
 
-   return `${formatted} COP`;
+   return formatted;
 };

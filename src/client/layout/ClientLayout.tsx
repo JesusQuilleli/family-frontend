@@ -3,7 +3,7 @@ import { Outlet, Link } from "react-router"
 import { ClientSidebar } from "../components/ClientSidebar"
 import { MobileHeader } from "@/components/MobileHeader"
 import { Bell } from "lucide-react"
-import { AdComponent } from "@/components/ads/AdComponent"
+
 
 export const ClientLayout = () => {
   return (
@@ -20,7 +20,6 @@ export const ClientLayout = () => {
           <div className="flex-1">
             <Outlet />
           </div>
-          <AdComponent slotId="1234567890" />
         </main>
       </div>
     </SidebarProvider>

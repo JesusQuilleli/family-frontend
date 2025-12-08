@@ -1,11 +1,12 @@
 import { FamilyApi } from "@/api/family.api";
 
-interface Category {
+export interface Category {
   _id: string;
   name: string;
   user_uid: string;
   image?: string;
   createdAt: string;
+  parent_id?: string | { _id: string, name: string } | null;
 }
 
 interface CategoriesResponse {

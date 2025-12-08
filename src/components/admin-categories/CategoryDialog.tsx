@@ -21,14 +21,19 @@ import {
    FormMessage,
    FormDescription,
 } from '@/components/ui/form';
+import {
+   Select,
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+} from '@/components/ui/select';
+import { useCategories } from '@/hooks/useCategories';
 import { Loader2 } from 'lucide-react';
 import { ImageUpload } from '@/components/common/ImageUpload';
+import { type Category } from '@/actions/get-categories';
 
-interface Category {
-   _id: string;
-   name: string;
-   image?: string;
-}
+
 
 interface CategoryDialogProps {
    open: boolean;
@@ -49,10 +54,13 @@ export const CategoryDialog = ({
    const [selectedImage, setSelectedImage] = useState<File | null>(null);
    const [imageRemoved, setImageRemoved] = useState(false);
 
+   const { data: categoriesData } = useCategories();
+
    const form = useForm<CategoryFormData>({
       resolver: zodResolver(categorySchema),
       defaultValues: {
          name: '',
+         parent_id: null,
       },
    });
 
@@ -62,12 +70,22 @@ export const CategoryDialog = ({
          setSelectedImage(null);
          setImageRemoved(false);
          if (editCategory) {
+            // Check parent_id type. If object, take _id
+            let parentIdValue = null;
+            if (editCategory.parent_id) {
+               parentIdValue = typeof editCategory.parent_id === 'object'
+                  ? (editCategory.parent_id as any)._id
+                  : editCategory.parent_id;
+            }
+
             form.reset({
                name: editCategory.name || '',
+               parent_id: parentIdValue,
             });
          } else {
             form.reset({
                name: initialName || '',
+               parent_id: null,
             });
          }
       }
@@ -80,6 +98,10 @@ export const CategoryDialog = ({
          // Crear FormData para enviar al backend
          const formData = new FormData();
          formData.append('name', data.name.trim());
+
+         if (data.parent_id && data.parent_id !== 'null') {
+            formData.append('parent_id', data.parent_id);
+         }
 
          if (selectedImage) {
             formData.append('image', selectedImage);
@@ -136,6 +158,43 @@ export const CategoryDialog = ({
                            </FormItem>
                         )}
                      />
+
+                     <div className="space-y-2">
+                        <FormField
+                           control={form.control}
+                           name="parent_id"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Categoría Padre (Opcional)</FormLabel>
+                                 <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value || undefined}
+                                    value={field.value || undefined}
+                                 >
+                                    <FormControl>
+                                       <SelectTrigger>
+                                          <SelectValue placeholder="Selecciona una categoría padre" />
+                                       </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                       <SelectItem value="null">Ninguna (Categoría Principal)</SelectItem>
+                                       {categoriesData?.categories
+                                          .filter(c => c._id !== editCategory?._id) // Prevent self-parenting
+                                          .map((category) => (
+                                             <SelectItem key={category._id} value={category._id}>
+                                                {category.name}
+                                             </SelectItem>
+                                          ))}
+                                    </SelectContent>
+                                 </Select>
+                                 <FormDescription>
+                                    Si seleccionas una, esta será una subcategoría.
+                                 </FormDescription>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
+                        />
+                     </div>
 
                      <div className="space-y-2">
                         <FormLabel>Imagen (Opcional)</FormLabel>

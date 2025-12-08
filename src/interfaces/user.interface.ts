@@ -10,6 +10,8 @@ export interface User {
    exchangeRates?: {
       tasaBs: number;
       tasaPesos: number;
+      tasaCopToBs?: number;
+      adminViewPreference?: 'USD_TO_BS' | 'COP_TO_BS';
       clientCurrency?: 'USD' | 'VES' | 'COP';
    };
    payment_config?: {

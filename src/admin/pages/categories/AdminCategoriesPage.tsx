@@ -12,16 +12,11 @@ import { Search } from '@/components/custom/Search';
 import { createCategoryAction } from '@/admin/actions/categories/add-category';
 import { updateCategoryAction } from '@/admin/actions/categories/update-category';
 import { deleteCategoryAction } from '@/admin/actions/categories/delete-category';
+import { type Category } from '@/actions/get-categories';
 import { useSearchParams } from 'react-router';
 import { getImageUrl } from '@/helpers/get-image-url';
 
-interface Category {
-   _id: string;
-   name: string;
-   image?: string;
-   user_uid: string;
-   createdAt: string;
-}
+
 
 export const AdminCategoriesPage = () => {
    const [dialogOpen, setDialogOpen] = useState(false);
@@ -261,6 +256,11 @@ export const AdminCategoriesPage = () => {
                            </div>
                            <CardHeader className="p-4 pb-2">
                               <CardTitle className="text-lg">{category.name}</CardTitle>
+                              {(category.parent_id) && (
+                                 <p className="text-sm text-muted-foreground">
+                                    Subcategoría de: <span className="font-semibold">{typeof category.parent_id === 'object' ? category.parent_id.name : '...'}</span>
+                                 </p>
+                              )}
                            </CardHeader>
                            <CardContent className="p-4 pt-0 pb-2">
                               <p className="text-sm text-muted-foreground">
