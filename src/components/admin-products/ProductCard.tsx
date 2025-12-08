@@ -6,6 +6,7 @@ import { Edit, Trash2, ShoppingCart, Minus } from 'lucide-react';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { PriceDisplay } from '../common/PriceDisplay';
 import { getImageUrl } from '@/helpers/get-image-url';
+import { ImageWithLoader } from '@/components/common/ImageWithLoader';
 
 interface ProductCardProps {
   product: ProductBackend;
@@ -41,11 +42,11 @@ export const ProductCard = ({
           onClick={() => onViewDetails?.(product)}
           className="relative overflow-hidden aspect-square w-full h-full cursor-pointer group/image"
         >
-          <img
+          <ImageWithLoader
             src={getImageUrl(product.image)}
             alt={product.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+            fallbackSrc="/not-image.jpg"
           />
           <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors flex items-center justify-center">
             <span className="text-white opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/60 px-3 py-1 rounded text-sm">

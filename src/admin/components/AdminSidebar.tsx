@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw, TrendingUp } from "lucide-react";
 import { NavLink } from "../../components/NavLink";
 import { useLocation, useNavigate } from "react-router";
 import { useState } from "react";
@@ -36,6 +36,7 @@ export const AdminSidebar = () => {
       { title: "Categorías", url: `/admin/categorias`, icon: FolderOpen },
       { title: "Pedidos", url: `/admin/pedidos`, icon: Package },
       { title: "Pagos", url: `/admin/pagos`, icon: CreditCard },
+      { title: "Reportes", url: `/admin/reportes`, icon: TrendingUp },
       { title: "Clientes", url: `/admin/clientes`, icon: User },
       {
          title: "Configuración",

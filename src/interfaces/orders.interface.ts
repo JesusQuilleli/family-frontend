@@ -9,8 +9,8 @@ export interface OrderProductItem {
       _id: string;
       name: string;
       sale_price: number;
-      image: string;
-   };
+      image: string | null;
+   } | null;
    stock: number;
    sale_price: number;
    _id: string;

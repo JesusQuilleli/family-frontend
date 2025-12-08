@@ -51,12 +51,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-slot', '@radix-ui/react-label', 'lucide-react'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge']
-        }
+        manualChunks: undefined
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000
   }
 })

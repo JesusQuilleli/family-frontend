@@ -5,6 +5,7 @@ import { Loader2, CheckCircle2, Clock, Image as ImageIcon, ExternalLink } from "
 
 import { getPaymentsByOrderAction } from "@/client/actions/payments/get-payments";
 import { getImageUrl } from "@/helpers/get-image-url";
+import { ImageWithLoader } from "@/components/common/ImageWithLoader";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/common/PriceDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -55,11 +56,11 @@ export const PaymentList = ({ orderId }: PaymentListProps) => {
                            <Dialog>
                               <DialogTrigger asChild>
                                  <div className="relative group cursor-pointer">
-                                    <img
+                                    <ImageWithLoader
                                        src={getImageUrl(payment.image_checking)}
                                        alt="Comprobante"
                                        className="w-12 h-12 rounded-md object-cover bg-muted border"
-                                       onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                                       fallbackSrc="/not-image.jpg"
                                     />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
                                        <ImageIcon className="w-4 h-4 text-white" />
@@ -67,11 +68,11 @@ export const PaymentList = ({ orderId }: PaymentListProps) => {
                                  </div>
                               </DialogTrigger>
                               <DialogContent className="max-w-3xl p-0 overflow-hidden bg-transparent border-none shadow-none">
-                                 <img
+                                 <ImageWithLoader
                                     src={getImageUrl(payment.image_checking)}
                                     alt="Comprobante completo"
                                     className="w-full h-auto rounded-lg"
-                                    onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                                    fallbackSrc="/not-image.jpg"
                                  />
                               </DialogContent>
                            </Dialog>

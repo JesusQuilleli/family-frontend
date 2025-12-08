@@ -72,7 +72,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                      {order.products.map((item) => (
                         <li key={item._id} className="flex justify-between items-start text-sm">
                            <span className="text-muted-foreground">
-                              {item.stock}x {item.product_uid.name}
+                              {item.stock}x {item.product_uid?.name || 'Producto no disponible'}
                            </span>
                            <PriceDisplay price={item.sale_price * item.stock} className="items-end" />
                         </li>

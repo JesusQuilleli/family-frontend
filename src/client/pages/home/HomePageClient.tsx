@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShoppingBag, Package, ArrowRight, Star, MessageCircle } from "lucide-react";
+import { ShoppingBag, Package, ArrowRight, Star, MessageCircle, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/custom/Header";
 import { useAuthStore } from "@/auth/store/auth.store";
@@ -11,6 +11,7 @@ import { es } from "date-fns/locale";
 import { LoadingSpinner } from "@/components/admin-products/LoadingSpinner";
 import { useCategories } from "@/hooks/useCategories";
 import { getImageUrl } from "@/helpers/get-image-url";
+import { ImageWithLoader } from "@/components/common/ImageWithLoader";
 
 export const HomePageClient = () => {
   const { user } = useAuthStore();
@@ -88,7 +89,7 @@ export const HomePageClient = () => {
                       <CardContent className="p-4 flex flex-col items-center justify-center gap-3 text-center h-full">
                         <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center text-2xl shadow-sm overflow-hidden">
                           {category.image ? (
-                            <img
+                            <ImageWithLoader
                               src={getImageUrl(category.image)}
                               alt={category.name}
                               className="h-full w-full object-cover"
@@ -189,6 +190,54 @@ export const HomePageClient = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Datos de Transferencia */}
+          {user?.adminAsociado?.payment_config && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  Datos de Transferencia
+                </CardTitle>
+                <CardDescription>
+                  Realiza tus pagos a la siguiente cuenta
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="grid gap-2 p-3 bg-muted/50 rounded-lg border">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Banco:</span>
+                    <span className="font-medium text-right">{user.adminAsociado.payment_config.bank_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Titular:</span>
+                    <span className="font-medium text-right">{user.adminAsociado.payment_config.identification}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cuenta:</span>
+                    <span className="font-mono font-medium text-right select-all">
+                      {user.adminAsociado.payment_config.account_number}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tipo:</span>
+                    <span className="font-medium text-right capitalize">{user.adminAsociado.payment_config.account_type}</span>
+                  </div>
+                  {user.adminAsociado.payment_config.phone && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Móvil Pago:</span>
+                      <span className="font-medium text-right">{user.adminAsociado.payment_config.phone}</span>
+                    </div>
+                  )}
+                </div>
+                {user.adminAsociado.payment_config.instructions && (
+                  <div className="text-xs text-muted-foreground bg-blue-50 text-blue-700 p-2 rounded border border-blue-100">
+                    {user.adminAsociado.payment_config.instructions}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Featured / Favorites */}
           <Card>

@@ -6,7 +6,19 @@ export interface User {
    phone?: string;
    isPremium?: boolean;
    membershipExpiresAt?: string | Date;
-   adminAsociado?: { uid: string, name: string, phone?: string } | null;
+   adminAsociado?: {
+      uid: string;
+      name: string;
+      phone?: string;
+      payment_config?: {
+         bank_name: string;
+         account_number: string;
+         account_type: string;
+         phone: string;
+         identification: string;
+         instructions: string;
+      };
+   } | null;
    exchangeRates?: {
       tasaBs: number;
       tasaPesos: number;

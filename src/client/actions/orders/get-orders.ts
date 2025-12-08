@@ -15,10 +15,10 @@ export const getOrdersAction = async ({ page = 1, limit = 10, status = 'all', da
          ...order,
          products: order.products.map(product => ({
             ...product,
-            product_uid: {
+            product_uid: product.product_uid ? {
                ...product.product_uid,
-               image: `${import.meta.env.VITE_API_URL}${product.product_uid.image}`
-            }
+               image: product.product_uid?.image ? `${import.meta.env.VITE_API_URL}${product.product_uid.image}` : null
+            } : null
          }))
       }))
 

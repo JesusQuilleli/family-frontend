@@ -181,7 +181,7 @@ export const RegisterPage = () => {
                   </div>
 
                   <a
-                    href="https://wa.me/584120000000?text=Hola,%20quiero%20abrir%20mi%20tienda%20en%20App%20Family"
+                    href="https://wa.me/584124742535?text=Hola,%20quiero%20abrir%20mi%20tienda%20en%20App%20Family"
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center justify-center w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium gap-2"

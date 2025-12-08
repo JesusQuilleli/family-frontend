@@ -49,7 +49,6 @@ interface PaymentFormProps {
 
 export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentFormProps) => {
    const [isLoading, setIsLoading] = useState(false);
-   const [currency] = useState<'VES'>('VES');
    const queryClient = useQueryClient();
 
    const { user } = useProfile();
@@ -131,7 +130,7 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
          return;
       }
 
-      if (!values.image) {
+      if (values.payment_method !== 'efectivo' && !values.image) {
          toast.error("Debes subir una imagen del comprobante");
          return;
       }
@@ -139,10 +138,16 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
       try {
          setIsLoading(true);
          const formData = new FormData();
+
          formData.append("amount", amountInUsd.toString());
          formData.append("payment_method", values.payment_method);
+         formData.append("original_amount", values.amount.toString());
+         // Determine original currency based on client config
+         const originalCurrency = (clientCurrency === 'COP' && tasaCopToBs > 0) ? 'COP' : 'VES';
+         formData.append("original_currency", originalCurrency);
+
          if (values.reference) formData.append("reference", values.reference);
-         formData.append("receipt", values.image);
+         if (values.image) formData.append("receipt", values.image);
 
          await createPaymentAction(orderId, formData);
          toast.success("Pago registrado exitosamente");
@@ -224,7 +229,7 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
 
             <div className="space-y-2">
                <ImageUpload
-                  label="Comprobante de pago"
+                  label={form.watch("payment_method") === "efectivo" ? "Comprobante (Opcional)" : "Comprobante de pago"}
                   onFileSelect={(file) => {
                      form.setValue("image", file);
                   }}

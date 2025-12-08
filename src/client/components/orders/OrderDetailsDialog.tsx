@@ -29,6 +29,7 @@ import { PriceDisplay } from "@/components/common/PriceDisplay";
 import { getPaymentsByOrderAction } from "@/client/actions/payments/get-payments";
 import { getImageUrl } from "@/helpers/get-image-url";
 import { useQuery } from "@tanstack/react-query";
+import { ImageWithLoader } from "@/components/common/ImageWithLoader";
 
 interface OrderDetailsDialogProps {
    children: React.ReactNode;
@@ -78,6 +79,16 @@ export const OrderDetailsDialog = ({ children, order }: OrderDetailsDialogProps)
       }
    };
 
+   const statusDescription: Record<string, string> = {
+      pendiente: "Tu pedido está siendo verificado por el vendedor. Espera su aprobación pronto.",
+      "por pagar": "¡Tu pedido fue aprobado! Por favor, registra tu pago en la sección de abajo para procesarlo.",
+      abonado: "Hemos recibido pagos parciales pero aún tienes deuda pendiente. Por favor reporta el monto restante para completar tu pedido.",
+      pagado: "¡Gracias por tu compra! Tu pedido está pagado y no tienes deudas pendientes.",
+      completado: "¡Gracias por tu compra! Tu pedido está pagado y completado.",
+      cancelado: "Este pedido ha sido cancelado.",
+      rechazado: "Este pedido fue rechazado por el vendedor.",
+   };
+
    return (
       <Dialog open={open} onOpenChange={setOpen}>
          <DialogTrigger asChild>{children}</DialogTrigger>
@@ -105,6 +116,11 @@ export const OrderDetailsDialog = ({ children, order }: OrderDetailsDialogProps)
 
             <ScrollArea className="max-h-[65vh] sm:max-h-[80vh] pr-4 -mr-4 sm:mr-0 sm:pr-4">
                <div className="grid gap-6 py-4 pr-4 sm:pr-0">
+                  <div className="bg-muted/50 border rounded-md p-3 text-sm text-muted-foreground flex gap-2">
+                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                     <p>{statusDescription[order.status] || "Sin información adicional."}</p>
+                  </div>
+
                   <div className="space-y-4">
                      <h4 className="text-sm font-medium leading-none">Productos</h4>
                      <div className="space-y-4">
@@ -114,16 +130,15 @@ export const OrderDetailsDialog = ({ children, order }: OrderDetailsDialogProps)
                               className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b pb-4 last:border-0 last:pb-0"
                            >
                               <div className="flex items-start gap-3">
-
-                                 <img
-                                    src={getImageUrl(item.product_uid.image)}
-                                    alt={item.product_uid.name}
+                                 <ImageWithLoader
+                                    src={item.product_uid && item.product_uid.image ? getImageUrl(item.product_uid.image) : '/not-image.jpg'}
+                                    alt={item.product_uid?.name || 'Producto eliminado'}
                                     className="w-12 h-12 rounded-md object-cover bg-muted flex-shrink-0"
-                                    onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                                    fallbackSrc="/not-image.jpg"
                                  />
                                  <div className="grid gap-1">
                                     <span className="font-medium text-sm line-clamp-2">
-                                       {item.product_uid.name}
+                                       {item.product_uid?.name || 'Producto no disponible (Eliminado)'}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
                                        Cantidad: {item.stock}

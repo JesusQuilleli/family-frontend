@@ -8,14 +8,17 @@ import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoa
 import { toast } from "sonner";
 import { useAuthStore } from "@/auth/store/auth.store";
 import { useAuthRedirect } from "@/auth/hook/useAuth";
+import { Eye, EyeOff } from "lucide-react";
 
 export const LoginPage = () => {
 
   useAuthRedirect();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
 
   const { login } = useAuthStore();
 
@@ -96,14 +99,27 @@ export const LoginPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="••••••••"
-                    required
-                    className="transition-all duration-200 focus:scale-[1.01]"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="••••••••"
+                      required
+                      className="transition-all duration-200 focus:scale-[1.01] pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <Link
