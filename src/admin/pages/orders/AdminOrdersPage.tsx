@@ -611,15 +611,13 @@ export const AdminOrdersPage = () => {
                     <TableRow key={item._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {item.product_uid.image && (
-                            <img
-                              src={getImageUrl(item.product_uid.image)}
-                              alt={item.product_uid.name}
-                              className="w-10 h-10 rounded-md object-cover"
-                              onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
-                            />
-                          )}
-                          <span className="font-medium">{item.product_uid.name}</span>
+                          <img
+                            src={item.product_uid?.image ? getImageUrl(item.product_uid.image) : '/not-image.jpg'}
+                            alt={item.product_uid?.name || 'Producto eliminado'}
+                            className="w-10 h-10 rounded-md object-cover"
+                            onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                          />
+                          <span className="font-medium">{item.product_uid?.name || 'Producto eliminado'}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -636,16 +634,14 @@ export const AdminOrdersPage = () => {
             <div className="md:hidden space-y-4">
               {selectedOrder?.products.map((item) => (
                 <div key={item._id} className="flex items-start gap-3 border-b pb-3 last:border-0">
-                  {item.product_uid.image && (
-                    <img
-                      src={getImageUrl(item.product_uid.image)}
-                      alt={item.product_uid.name}
-                      className="w-16 h-16 rounded-md object-cover shrink-0"
-                      onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
-                    />
-                  )}
+                  <img
+                    src={item.product_uid?.image ? getImageUrl(item.product_uid.image) : '/not-image.jpg'}
+                    alt={item.product_uid?.name || 'Producto eliminado'}
+                    className="w-16 h-16 rounded-md object-cover shrink-0"
+                    onError={(e) => { e.currentTarget.src = '/not-image.jpg'; }}
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.product_uid.name}</p>
+                    <p className="font-medium text-sm truncate">{item.product_uid?.name || 'Producto eliminado'}</p>
                     <div className="flex justify-between mt-2 text-sm">
                       <div className="text-muted-foreground">
                         {item.stock} x <PriceDisplay price={item.sale_price} />

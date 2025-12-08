@@ -24,11 +24,7 @@ export const StatsCards = ({ stats, isLoading }: StatsCardsProps) => {
 
    if (!stats) return null;
 
-   const formatCurrency = (value: number) => {
-      // Assuming the base currency for display is USD for simplicity or based on context
-      // PriceDisplay handles formatting internally, but here we might just show raw numbers or use PriceDisplay component
-      return value;
-   };
+
 
    return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
