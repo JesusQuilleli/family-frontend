@@ -20,6 +20,8 @@ export const RegisterPage = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
+  // Inicializamos isValidating en true si hay un ref en la URL para evitar parpadeos
+  const [isValidating, setIsValidating] = useState(() => !!searchParams.get('ref'));
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [adminName, setAdminName] = useState<string | null>(null);
   const [countryCode, setCountryCode] = useState("+58");
@@ -32,12 +34,17 @@ export const RegisterPage = () => {
   useEffect(() => {
     const refCode = searchParams.get('ref');
     if (refCode) {
+      setIsValidating(true); // Asegurar que se muestre loading si cambia el searchParams detectado
       validateReferralCodeAction(refCode).then((result) => {
         if (result.valid) {
           setReferralCode(refCode);
           setAdminName(result.adminName || null);
         }
+      }).finally(() => {
+        setIsValidating(false);
       });
+    } else {
+      setIsValidating(false);
     }
   }, [searchParams]);
 
@@ -85,7 +92,7 @@ export const RegisterPage = () => {
   return (
     <>
 
-      {isLoading && (
+      {(isLoading || isValidating) && (
         <CustomFullScreenLoading />
       )}
 

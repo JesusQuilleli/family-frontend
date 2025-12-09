@@ -32,7 +32,7 @@ export const AdminCategoriesPage = () => {
 
    const { data, isLoading, isError, error, refetch } = useCategories();
 
-   console.log(data);
+   //console.log(data);
 
    const currentQuery = searchParams.get('query') || '';
 

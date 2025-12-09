@@ -2,9 +2,11 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { getOrdersByAdmin } from '@/admin/actions/orders/get-orders';
 
 import { approveOrder, rejectOrder, cancelOrder } from '@/admin/actions/orders/update-order';
+import { mergeOrders } from '@/admin/actions/orders/merge-orders';
 import { sendPaymentReminder, sendBulkPaymentReminders } from '@/actions/order-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -37,7 +39,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Eye, CreditCard, Bell } from 'lucide-react';
+import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Eye, CreditCard, Bell, Merge } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -67,6 +69,8 @@ export const AdminOrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [cancelReason, setCancelReason] = useState("");
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
 
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -168,6 +172,69 @@ export const AdminOrdersPage = () => {
     }
   });
 
+  const mergeMutation = useMutation({
+    mutationFn: mergeOrders,
+    onSuccess: () => {
+      toast.success('Pedidos unificados correctamente');
+      setMergeDialogOpen(false);
+      setSelectedOrders(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    }
+  });
+
+  const toggleOrderSelection = (orderId: string) => {
+    const newSelection = new Set(selectedOrders);
+    if (newSelection.has(orderId)) {
+      newSelection.delete(orderId);
+    } else {
+      newSelection.add(orderId);
+    }
+    setSelectedOrders(newSelection);
+  };
+
+  const toggleAllSelection = () => {
+    if (!ordersData) return;
+
+    // Solo permitir seleccionar pendientes
+    const pendingOrders = ordersData.orders.filter(o => o.status === 'pendiente');
+
+    if (selectedOrders.size === pendingOrders.length && pendingOrders.length > 0) {
+      setSelectedOrders(new Set());
+    } else {
+      const newSelection = new Set<string>();
+      pendingOrders.forEach(o => newSelection.add(o._id));
+      setSelectedOrders(newSelection);
+    }
+  };
+
+  const selectedOrdersList = ordersData?.orders.filter(o => selectedOrders.has(o._id)) || [];
+
+  // Validaciones para merge
+  const canMerge = () => {
+    if (selectedOrders.size < 2) return false;
+
+    // Verificar mismo cliente
+    const firstClient = selectedOrdersList[0]?.client_uid?._id;
+    if (!firstClient) return false; // Should not happen
+
+    return selectedOrdersList.every(o => o.client_uid?._id === firstClient);
+  };
+
+  const handleMergeClick = () => {
+    if (canMerge()) {
+      setMergeDialogOpen(true);
+    } else {
+      toast.error("Selecciona al menos 2 pedidos del mismo cliente para unificar.");
+    }
+  };
+
+  const handleConfirmMerge = () => {
+    mergeMutation.mutate(Array.from(selectedOrders));
+  };
+
 
 
 
@@ -239,6 +306,20 @@ export const AdminOrdersPage = () => {
         {(order.status === 'por pagar' || order.status === 'abonado') && (
           <DropdownMenuItem onClick={() => reminderMutation.mutate(order._id)}>
             <Bell className="mr-2 h-4 w-4" /> Enviar Cobro
+          </DropdownMenuItem>
+        )}
+
+        {/* WhatsApp Button */}
+        {(order.status === 'pendiente' || order.status === 'por pagar' || order.status === 'abonado') && order.client_uid?.phone && (
+          <DropdownMenuItem onClick={() => {
+            const phone = (order.client_uid?.phone || '').replace(/\D/g, '');
+            const message = `Hola ${order.client_uid?.name || 'Cliente'}, te recordamos que tienes el pedido #${order._id.slice(-6)} pendiente por pagar. Monto pendiente: ${order.remaining > 0 ? order.remaining : order.total}. Por favor reporta tu pago ingresando a https://familyapp.shop-mg.com/.`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+          }}>
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+            </svg>
+            WhatsApp
           </DropdownMenuItem>
         )}
 
@@ -344,6 +425,8 @@ export const AdminOrdersPage = () => {
             </Button>
           )}
 
+
+
           <Button
             variant="outline"
             size="sm"
@@ -364,6 +447,28 @@ export const AdminOrdersPage = () => {
             )}
           </Button>
         </div>
+
+        {selectedOrders.size > 0 && (
+          <div className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border animate-in fade-in slide-in-from-top-2">
+            <span className="text-sm font-medium px-2">{selectedOrders.size} seleccionados</span>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleMergeClick}
+              disabled={!canMerge()}
+            >
+              <Merge className="w-4 h-4 mr-2" />
+              Unificar Pedidos
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelectedOrders(new Set())}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Desktop View */}
@@ -371,6 +476,17 @@ export const AdminOrdersPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={
+                    ordersData?.orders.some(o => o.status === 'pendiente') &&
+                    selectedOrders.size === ordersData?.orders.filter(o => o.status === 'pendiente').length &&
+                    selectedOrders.size > 0
+                  }
+                  onCheckedChange={toggleAllSelection}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead>ID</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Fecha</TableHead>
@@ -383,6 +499,14 @@ export const AdminOrdersPage = () => {
           <TableBody>
             {ordersData?.orders.map((order) => (
               <TableRow key={order._id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedOrders.has(order._id)}
+                    onCheckedChange={() => toggleOrderSelection(order._id)}
+                    disabled={order.status !== 'pendiente'}
+                    aria-label={`Select order ${order._id}`}
+                  />
+                </TableCell>
                 <TableCell className="font-mono text-xs">{order._id.slice(-6)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
@@ -420,9 +544,17 @@ export const AdminOrdersPage = () => {
         {ordersData?.orders.map((order) => (
           <Card key={order._id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Pedido #{order._id.slice(-6)}
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedOrders.has(order._id)}
+                  onCheckedChange={() => toggleOrderSelection(order._id)}
+                  disabled={order.status !== 'pendiente'}
+                  aria-label={`Select order ${order._id}`}
+                />
+                <CardTitle className="text-sm font-medium">
+                  Pedido #{order._id.slice(-6)}
+                </CardTitle>
+              </div>
               {renderActions(order)}
             </CardHeader>
             <CardContent>
@@ -586,6 +718,51 @@ export const AdminOrdersPage = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unificar Pedidos</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas unificar los {selectedOrders.size} pedidos seleccionados?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2 space-y-2">
+            <div className="text-sm bg-yellow-50 text-yellow-800 p-3 rounded-md border border-yellow-200">
+              <p className="font-medium flex items-center gap-2">
+                <Filter className="w-4 h-4" /> Importante
+              </p>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>Los pedidos originales serán eliminados permanentemente.</li>
+                <li>El stock se recalculará automáticamente.</li>
+                <li>Se creará un nuevo pedido con la suma de los productos.</li>
+              </ul>
+            </div>
+
+            <div className="text-sm text-muted-foreground mt-4">
+              <strong>Pedidos a unificar:</strong>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedOrdersList.map(o => (
+                  <span key={o._id} className="bg-muted px-2 py-1 rounded-md text-xs font-mono">
+                    #{o._id.slice(-6)}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 font-medium">
+              <span>Nuevo Total Estimado:</span>
+              <PriceDisplay price={selectedOrdersList.reduce((acc, o) => acc + o.total, 0)} className="text-lg" />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmMerge}>Confirmar Unificación</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
@@ -665,6 +842,6 @@ export const AdminOrdersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };

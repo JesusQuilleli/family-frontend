@@ -95,7 +95,7 @@ export const ClientProductsPage = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Nuestros Productos</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Nuestros Productos</h1>
               <p className="text-muted-foreground">
                 Explora nuestra selección de productos
               </p>
@@ -103,13 +103,13 @@ export const ClientProductsPage = () => {
 
             <Button
               variant="outline"
-              size="icon"
-              className="relative"
+              className="relative gap-2"
               onClick={() => setIsOpen(true)}
             >
               <ShoppingCart className="w-5 h-5" />
+              <span>Carrito de Compras</span>
               {items.length > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 animate-in zoom-in">
                   {items.length}
                 </Badge>
               )}

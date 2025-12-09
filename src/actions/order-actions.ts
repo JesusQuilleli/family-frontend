@@ -60,6 +60,6 @@ export const sendPaymentReminder = async (orderId: string) => {
 }
 
 export const sendBulkPaymentReminders = async () => {
-   const { data } = await FamilyApi.post(`/orders/admin/reminders/bulk`);
+   const { data } = await FamilyApi.post(`/notifications/remind-payments`);
    return data;
 }

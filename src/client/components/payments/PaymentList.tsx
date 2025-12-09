@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2, CheckCircle2, Clock, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Image as ImageIcon } from "lucide-react";
 
 import { getPaymentsByOrderAction } from "@/client/actions/payments/get-payments";
 import { getImageUrl } from "@/helpers/get-image-url";
@@ -9,7 +9,6 @@ import { ImageWithLoader } from "@/components/common/ImageWithLoader";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/common/PriceDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import {
    Dialog,
    DialogContent,
@@ -120,13 +119,7 @@ export const PaymentList = ({ orderId }: PaymentListProps) => {
                         )}
                      </div>
 
-                     {payment.image_checking && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden" asChild>
-                           <a href={payment.image_checking} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-4 h-4" />
-                           </a>
-                        </Button>
-                     )}
+
                   </div>
                </div>
             ))}

@@ -148,7 +148,6 @@ export const useAuthStore = create<AuthState>()(
 
           return true;
         } catch (error: unknown) {
-          console.log(`Error on checkAuthStatus ${error}`);
           localStorage.removeItem("token");
           set(
             { user: null, token: null, authStatus: "not-authenticated", role: null },

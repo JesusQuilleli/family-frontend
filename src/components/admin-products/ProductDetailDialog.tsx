@@ -197,11 +197,12 @@ export const ProductDetailDialog = ({
                     <Button
                       size="lg"
                       className="w-full"
+                      variant={product.stock === 0 ? "destructive" : "default"}
                       onClick={() => onAddToCart?.(product)}
                       disabled={product.stock === 0}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
-                      {product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+                      {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
                     </Button>
                   )}
                 </>

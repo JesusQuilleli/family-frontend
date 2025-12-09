@@ -67,7 +67,7 @@ export const ClientSidebar = () => {
 
          <SidebarContent>
             <SidebarGroup>
-               <SidebarGroupLabel className={!open ? "sr-only" : ""}>Navegación</SidebarGroupLabel>
+               <SidebarGroupLabel>Navegación</SidebarGroupLabel>
                <SidebarGroupContent>
                   <SidebarMenu>
                      {items.map((item, index) => {

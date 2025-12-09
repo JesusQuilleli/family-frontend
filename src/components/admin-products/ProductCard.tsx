@@ -49,11 +49,17 @@ export const ProductCard = ({
             fallbackSrc="/not-image.jpg"
           />
           <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors flex items-center justify-center">
-            <span className="text-white opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/60 px-3 py-1 rounded text-sm">
-              Ver detalles
-            </span>
+            {product.stock === 0 ? (
+              <span className="text-white font-bold bg-black/50 w-full text-center py-2 backdrop-blur-sm uppercase tracking-wider">
+                Agotado
+              </span>
+            ) : (
+              <span className="text-white opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/60 px-3 py-1 rounded text-sm">
+                Ver detalles
+              </span>
+            )}
           </div>
-          {product.stock < 10 && (
+          {product.stock > 0 && product.stock < 10 && (
             <Badge variant="destructive" className="absolute top-2 left-2">
               Poca cantidad: {product.stock}
             </Badge>
@@ -143,7 +149,7 @@ export const ProductCard = ({
               </Button>
             ) : (
               <Button
-                variant="default"
+                variant={product.stock === 0 ? "destructive" : "default"}
                 size="sm"
                 className="flex-1"
                 onClick={() => onAddToCart?.(product)}
@@ -151,7 +157,7 @@ export const ProductCard = ({
               >
                 <ShoppingCart className="w-4 h-4 mr-0 sm:mr-1" />
                 <span className="hidden sm:inline">
-                  {product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+                  {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
                 </span>
                 <span className="inline sm:hidden">
                   {product.stock === 0 ? 'Agotado' : 'Agregar'}
