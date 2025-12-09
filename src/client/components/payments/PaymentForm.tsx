@@ -27,6 +27,7 @@ import { createPaymentAction } from "@/client/actions/payments/create-payment";
 import { useProfile } from "@/hooks/useProfile";
 import { usdToBs } from "@/helpers/converts.prices.bs";
 import { ImageUpload } from "@/components/common/ImageUpload";
+import { formatCurrencyPesos } from "@/helpers/format-currency";
 
 const PAYMENT_METHODS = ["efectivo", "transferencia"] as const;
 
@@ -66,31 +67,15 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
    });
 
    useEffect(() => {
+      // Calculate initial amount in Bs
       if (clientCurrency === 'COP' && tasaCopToBs > 0) {
-         // remainingAmount comes in COP (because backend sends it based on order currency which is likely calculated/stored)
-         // ACTUALLY: we need to be careful. The Order typically stores values in USD or Base. 
-         // Let's assume remainingAmount passed to this component is in the currency of the Order.
-         // If Order was created when configured in COP, amounts might be in USD internally but displayed in COP?
-         // Checking OrderDetailsDialog: PriceDisplay is used for 'total' and 'remaining'.
-         // PriceDisplay takes 'price' which is usually USD.
-         // So remainingAmount is likely in USD.
-
-         // WAIT: If remainingAmount is in USD.
-         // If clientCurrency is COP.
-         // We want to calculate Bs.
-         // Path A: USD -> COP -> Bs. (USD * TasaPesos) / TasaCopToBs.
-         // Path B: USD -> Bs. (USD * TasaBs).
-
-         // The requirement is: "el debe 35.000 COP debe cancelar en total 2.916,67"
-         // This implies: PriceInCop / TasaCopToBs.
-
-         // We need to know 'remainingAmount' in COP first.
+         // Cross conversion: USD -> COP -> Bs
          const tasaPesos = user?.exchangeRates?.tasaPesos || 0;
          const amountInCop = remainingAmount * tasaPesos;
          const amountInBs = amountInCop / tasaCopToBs;
-
          form.setValue("amount", Number(amountInBs.toFixed(2)));
       } else if (tasaBs > 0) {
+         // Direct conversion: USD -> Bs
          const amountInBs = usdToBs(remainingAmount, tasaBs);
          form.setValue("amount", Number(amountInBs.toFixed(2)));
       }
@@ -98,30 +83,39 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
 
    const onSubmit = async (values: PaymentFormValues) => {
       let amountInUsd = values.amount;
+      const amount = Number(values.amount); // Input in Bs
 
-      // Conversion logic to save in USD (Backend expects USD likely)
+      // Conversion logic to save in USD based on input Bs
       if (clientCurrency === 'COP' && tasaCopToBs > 0) {
-         // Input is in Bs. We need to convert back to USD to store/validate against remainingAmount (USD).
-         // Bs * TasaCopToBs = COP.
-         // COP / TasaPesos = USD.
+         // Bs -> COP -> USD
          const tasaPesos = user?.exchangeRates?.tasaPesos || 1;
-         const amountInCop = values.amount * tasaCopToBs;
+         const amountInCop = amount * tasaCopToBs;
          amountInUsd = amountInCop / tasaPesos;
       } else if (tasaBs > 0) {
-         amountInUsd = Number((values.amount / tasaBs).toFixed(6));
+         // Bs -> USD
+         amountInUsd = Number((amount / tasaBs).toFixed(6));
       }
 
-      if (amountInUsd > remainingAmount + 0.01) { // Small tolerance for rounding
+      const tolerance = 0.01; // Tighter tolerance (1 cent USD)
+
+      // Strict validation for COP to avoid "rounding" allowances visible to user
+      if (clientCurrency === 'COP' && tasaCopToBs > 0) {
+         const tasaPesos = user?.exchangeRates?.tasaPesos || 0;
+         const maxCop = remainingAmount * tasaPesos;
+         const currentCop = amount * tasaCopToBs;
+
+         if (currentCop > maxCop + 10) { // Tolerance of 10 COP (very small)
+            form.setError("amount", {
+               type: "manual",
+               message: `El monto no puede exceder el restante (${formatCurrencyPesos(maxCop)} COP)`,
+            });
+            return;
+         }
+      } else if (amountInUsd > remainingAmount + tolerance) {
          let maxAmount = 0;
          let currencySymbol = 'Bs';
 
-         if (clientCurrency === 'COP' && tasaCopToBs > 0) {
-            const tasaPesos = user?.exchangeRates?.tasaPesos || 0;
-            const maxCop = remainingAmount * tasaPesos;
-            maxAmount = maxCop / tasaCopToBs;
-         } else {
-            maxAmount = remainingAmount * tasaBs;
-         }
+         maxAmount = remainingAmount * tasaBs;
 
          form.setError("amount", {
             type: "manual",
@@ -142,8 +136,21 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
          formData.append("amount", amountInUsd.toString());
          formData.append("payment_method", values.payment_method);
          formData.append("original_amount", values.amount.toString());
-         // Determine original currency based on client config
-         const originalCurrency = (clientCurrency === 'COP' && tasaCopToBs > 0) ? 'COP' : 'VES';
+
+         // Always 'VES' because input is in Bs, unless backend needs to know it was derived from COP logic?
+         // Original code sent 'COP' if clientCurrency was COP.
+         // But "original_amount" is now sending values in Bs.
+         // If we send 'COP', backend might think original_amount is in COP?
+         // Let's check logic:
+         // If we input 2916 Bs. Submit with original_currency 'COP'. 
+         // Backend might treat 2916 as COP? That would be wrong.
+         // So if input is Bs, original_currency should be VES/Bs.
+
+         const originalCurrency = 'VES';
+         // Wait, if the user sees COP ref, maybe backend wants to track COP?
+         // But the actual input is Bs. Let's stick to VES to be safe with the amount value.
+         // Actually, let's keep it VES since the user is "registering in bolivares".
+
          formData.append("original_currency", originalCurrency);
 
          if (values.reference) formData.append("reference", values.reference);
@@ -162,11 +169,14 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
       }
    };
 
+   // Calculate reference amount in COP if applicable
+   const amount = form.watch("amount");
+   const showCopReference = clientCurrency === 'COP' && tasaCopToBs > 0;
+   const copReferenceAmount = showCopReference ? (Number(amount || 0) * tasaCopToBs) : 0;
+
    return (
       <Form {...form}>
          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                <FormField
                   control={form.control}
@@ -175,12 +185,19 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
                      <FormItem>
                         <FormLabel>Monto a pagar (Bs)</FormLabel>
                         <FormControl>
-                           <Input
-                              type="number"
-                              placeholder="0.00"
-                              {...field}
-                              step="0.01"
-                           />
+                           <div className="flex flex-col gap-1">
+                              <Input
+                                 type="number"
+                                 placeholder="0.00"
+                                 {...field}
+                                 step="0.01"
+                              />
+                              {showCopReference && (
+                                 <div className="text-xs text-muted-foreground font-medium text-orange-600">
+                                    Equivale a: {formatCurrencyPesos(copReferenceAmount)} COP
+                                 </div>
+                              )}
+                           </div>
                         </FormControl>
                         <FormMessage />
                      </FormItem>

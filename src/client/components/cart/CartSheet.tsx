@@ -41,6 +41,17 @@ export const CartSheet = () => {
    const handleCreateOrder = async () => {
       if (items.length === 0) return;
 
+      // Validate stock before sending
+      const invalidItems = items.filter(item => item.quantity > item.product.stock);
+      if (invalidItems.length > 0) {
+         toast({
+            title: "Stock insuficiente",
+            description: `No hay suficiente stock para: ${invalidItems.map(i => i.product.name).join(', ')}`,
+            variant: "destructive"
+         });
+         return;
+      }
+
       setIsLoading(true);
       try {
          const payload = {

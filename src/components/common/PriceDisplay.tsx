@@ -66,7 +66,8 @@ export const PriceDisplay = ({ price, className = "", showBase = true, showOnly 
    // Show specific currency
    if (currencyToShow === 'COP') {
       const tasaCopToBs = user?.exchangeRates?.tasaCopToBs || 0;
-      const showBsFromCop = tasaCopToBs > 0;
+      const isAdminOrEmployee = user?.role !== 'cliente';
+      const showBsFromCop = tasaCopToBs > 0 && isAdminOrEmployee;
       const priceInBsFromCop = showBsFromCop ? priceInPesos / tasaCopToBs : 0;
 
       return (
@@ -77,7 +78,7 @@ export const PriceDisplay = ({ price, className = "", showBase = true, showOnly 
             {showBsFromCop && (
                <span className="text-blue-600 font-medium text-xs">
                   {formatCurrencyBs(priceInBsFromCop)}
-                  {user?.role !== 'cliente' && ` (Tasa: ${tasaCopToBs})`}
+                  {isAdminOrEmployee && ` (Tasa: ${tasaCopToBs})`}
                </span>
             )}
          </div>
