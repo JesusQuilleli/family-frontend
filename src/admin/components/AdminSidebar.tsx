@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw, TrendingUp } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, CreditCard, LogOut, FolderOpen, Settings2, User, ChevronDown, Key, RefreshCcw, TrendingUp, Bell } from "lucide-react";
 import { NavLink } from "../../components/NavLink";
 import { useLocation, useNavigate } from "react-router";
 import { useState } from "react";
@@ -32,6 +32,7 @@ export const AdminSidebar = () => {
 
    const items = [
       { title: "Inicio", url: '/admin', icon: LayoutDashboard },
+      { title: "Notificaciones", url: `/admin/notificaciones`, icon: Bell },
       { title: "Productos", url: `/admin/productos`, icon: ShoppingBag },
       { title: "Categorías", url: `/admin/categorias`, icon: FolderOpen },
       { title: "Pedidos", url: `/admin/pedidos`, icon: Package },

@@ -51,3 +51,19 @@ export const updateOrderStatus = async (id: string, status: string): Promise<Ord
       throw new Error('Error al actualizar el estado');
    }
 }
+
+export const removeProductFromOrder = async (orderId: string, itemId: string): Promise<{ order?: Order, deleted?: boolean, msg?: string }> => {
+   try {
+      const { data } = await FamilyApi.delete<{ ok: boolean, msg: string, order?: Order, deleted?: boolean }>(`/orders/admin/${orderId}/product/${itemId}`);
+      if (data.deleted) {
+         return { deleted: true, msg: data.msg };
+      }
+      return { order: data.order };
+   } catch (error: any) {
+      if (isAxiosError(error)) {
+         throw new Error(error.response?.data.msg || 'Error al eliminar producto del pedido');
+      }
+      throw new Error('Error al eliminar producto del pedido');
+   }
+}
+

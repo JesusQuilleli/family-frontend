@@ -118,6 +118,10 @@ export const appRouter = createBrowserRouter([
         element: <HomePageAdmin />
       },
       {
+        path: 'notificaciones',
+        element: <NotificationsPage />
+      },
+      {
         path: 'productos',
         element: <AdminProductsPage />
       },

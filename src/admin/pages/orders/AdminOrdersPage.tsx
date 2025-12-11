@@ -1,7 +1,17 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getOrdersByAdmin } from '@/admin/actions/orders/get-orders';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-import { approveOrder, rejectOrder, cancelOrder } from '@/admin/actions/orders/update-order';
+import { approveOrder, rejectOrder, cancelOrder, removeProductFromOrder } from '@/admin/actions/orders/update-order';
 import { mergeOrders } from '@/admin/actions/orders/merge-orders';
 import { sendPaymentReminder, sendBulkPaymentReminders } from '@/actions/order-actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,7 +49,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Eye, CreditCard, Bell, Merge } from 'lucide-react';
+import { MoreHorizontal, Check, X, Ban, RefreshCw, Calendar, User, DollarSign, Filter, Package, Eye, CreditCard, Bell, Merge, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -77,6 +87,9 @@ export const AdminOrdersPage = () => {
   const [filterDate, setFilterDate] = useState("");
   const [searchId, setSearchId] = useState("");
   const [debouncedSearchId, setDebouncedSearchId] = useState("");
+
+  // State for product deletion confirmation
+  const [productToDelete, setProductToDelete] = useState<{ orderId: string, item: any } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -150,6 +163,26 @@ export const AdminOrdersPage = () => {
     }
   });
 
+  const removeProductMutation = useMutation({
+    mutationFn: ({ orderId, itemId }: { orderId: string, itemId: string }) => removeProductFromOrder(orderId, itemId),
+    onSuccess: (data) => {
+      if (data.deleted) {
+        toast.success(data.msg || 'Pedido eliminado ya que no quedaron productos');
+        setDetailsDialogOpen(false);
+        setSelectedOrder(null);
+      } else if (data.order) {
+        toast.success('Producto eliminado correctamente');
+        setSelectedOrder(data.order);
+      }
+      setProductToDelete(null); // Close alert dialog
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+      setProductToDelete(null);
+    }
+  });
+
 
 
   const reminderMutation = useMutation({
@@ -198,14 +231,14 @@ export const AdminOrdersPage = () => {
   const toggleAllSelection = () => {
     if (!ordersData) return;
 
-    // Solo permitir seleccionar pendientes
-    const pendingOrders = ordersData.orders.filter(o => o.status === 'pendiente');
+    // Permitir seleccionar pendientes y por pagar
+    const mergeableOrders = ordersData.orders.filter(o => o.status === 'pendiente' || o.status === 'por pagar');
 
-    if (selectedOrders.size === pendingOrders.length && pendingOrders.length > 0) {
+    if (selectedOrders.size === mergeableOrders.length && mergeableOrders.length > 0) {
       setSelectedOrders(new Set());
     } else {
       const newSelection = new Set<string>();
-      pendingOrders.forEach(o => newSelection.add(o._id));
+      mergeableOrders.forEach(o => newSelection.add(o._id));
       setSelectedOrders(newSelection);
     }
   };
@@ -479,8 +512,8 @@ export const AdminOrdersPage = () => {
               <TableHead className="w-[50px]">
                 <Checkbox
                   checked={
-                    ordersData?.orders.some(o => o.status === 'pendiente') &&
-                    selectedOrders.size === ordersData?.orders.filter(o => o.status === 'pendiente').length &&
+                    ordersData?.orders.some(o => o.status === 'pendiente' || o.status === 'por pagar') &&
+                    selectedOrders.size === ordersData?.orders.filter(o => o.status === 'pendiente' || o.status === 'por pagar').length &&
                     selectedOrders.size > 0
                   }
                   onCheckedChange={toggleAllSelection}
@@ -503,7 +536,7 @@ export const AdminOrdersPage = () => {
                   <Checkbox
                     checked={selectedOrders.has(order._id)}
                     onCheckedChange={() => toggleOrderSelection(order._id)}
-                    disabled={order.status !== 'pendiente'}
+                    disabled={!(order.status === 'pendiente' || order.status === 'por pagar')}
                     aria-label={`Select order ${order._id}`}
                   />
                 </TableCell>
@@ -548,7 +581,7 @@ export const AdminOrdersPage = () => {
                 <Checkbox
                   checked={selectedOrders.has(order._id)}
                   onCheckedChange={() => toggleOrderSelection(order._id)}
-                  disabled={order.status !== 'pendiente'}
+                  disabled={!(order.status === 'pendiente' || order.status === 'por pagar')}
                   aria-label={`Select order ${order._id}`}
                 />
                 <CardTitle className="text-sm font-medium">
@@ -781,6 +814,7 @@ export const AdminOrdersPage = () => {
                     <TableHead>Producto</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
                     <TableHead className="text-right">Cant.</TableHead>
+                    {selectedOrder?.status === 'pendiente' && <TableHead className="w-[50px]"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -801,6 +835,19 @@ export const AdminOrdersPage = () => {
                         <PriceDisplay price={item.sale_price} />
                       </TableCell>
                       <TableCell className="text-right">{item.stock}</TableCell>
+                      {selectedOrder?.status === 'pendiente' && (
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setProductToDelete({ orderId: selectedOrder._id, item })}
+                            disabled={removeProductMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -828,6 +875,17 @@ export const AdminOrdersPage = () => {
                       </div>
                     </div>
                   </div>
+                  {selectedOrder?.status === 'pendiente' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={() => setProductToDelete({ orderId: selectedOrder._id, item })}
+                      disabled={removeProductMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -842,6 +900,34 @@ export const AdminOrdersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent className="z-[1000]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedOrder && selectedOrder.products.length === 1
+                ? "Este es el único producto. Si lo eliminas, el pedido completo será eliminado irreversiblemente."
+                : "Se eliminará este producto del pedido y se restaurará el stock a la tienda."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeProductMutation.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault(); // Prevent auto-close to handle async
+                if (productToDelete) {
+                  removeProductMutation.mutate({ orderId: productToDelete.orderId, itemId: productToDelete.item._id });
+                }
+              }}
+              disabled={removeProductMutation.isPending}
+            >
+              {removeProductMutation.isPending ? "Eliminando..." : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div >
   );
 };

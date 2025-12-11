@@ -128,3 +128,8 @@
 .animate-progress-indeterminate {
   animation: progress-indeterminate 1.5s infinite linear;
 }
+
+/* Fix for SweetAlert2 z-index issue */
+.swal2-container {
+  z-index: 100000 !important;
+}
