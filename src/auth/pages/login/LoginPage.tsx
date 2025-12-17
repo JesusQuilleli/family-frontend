@@ -4,11 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
-import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoading";
+
 import { toast } from "sonner";
 import { useAuthStore } from "@/auth/store/auth.store";
 import { useAuthRedirect } from "@/auth/hook/useAuth";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export const LoginPage = () => {
 
@@ -73,7 +73,7 @@ export const LoginPage = () => {
 
   return (
     <>
-      {isLoading && (<CustomFullScreenLoading />)}
+
 
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted/30 px-4">
         <div className="w-full max-w-md animate-in fade-in duration-500">
@@ -131,9 +131,17 @@ export const LoginPage = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 cursor-pointer"
+                  disabled={isLoading}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Acceder
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Iniciando sesión...
+                    </>
+                  ) : (
+                    "Acceder"
+                  )}
                 </Button>
               </form>
 

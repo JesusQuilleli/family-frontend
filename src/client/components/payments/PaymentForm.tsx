@@ -61,7 +61,7 @@ export const PaymentForm = ({ orderId, remainingAmount, onSuccess }: PaymentForm
       resolver: zodResolver(paymentSchema) as any,
       defaultValues: {
          amount: remainingAmount,
-         payment_method: "efectivo",
+         payment_method: "transferencia",
          reference: "",
       },
    });

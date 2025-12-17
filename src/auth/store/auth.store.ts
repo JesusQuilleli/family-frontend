@@ -68,8 +68,25 @@ export const useAuthStore = create<AuthState>()(
             token: data.token ?? null,
             user: data.user ?? null,
           } as RegisterResponse;
-        } catch (error: unknown) {
-          return { ok: false, msg: (error as Error)?.message ?? "Error", role: null };
+        } catch (error: any) {
+          let errorMessage = "Error en el registro";
+
+          if (error.response?.data?.errors) {
+            // Express Validator errors
+            const errors = error.response.data.errors;
+            // Get the first error message available
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) {
+              errorMessage = errors[firstErrorKey].msg;
+            }
+          } else if (error.response?.data?.msg) {
+            // Custom backend error
+            errorMessage = error.response.data.msg;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          return { ok: false, msg: errorMessage, role: null };
         }
       },
 
@@ -96,14 +113,26 @@ export const useAuthStore = create<AuthState>()(
             token: data.token ?? null,
             user: data.user ?? null,
           } as LoginResponse;
-        } catch (error: unknown) {
+        } catch (error: any) {
+          let errorMessage = "Error al iniciar sesión";
+
+          if (error.response?.data?.msg) {
+            errorMessage = error.response.data.msg;
+          } else if (error.response?.data?.errors) {
+            const errors = error.response.data.errors;
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) errorMessage = errors[firstErrorKey].msg;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
           set(
             { user: null, token: null, authStatus: "not-authenticated", role: null },
             false,
             "login_error"
           );
           localStorage.removeItem("token");
-          return { ok: false, msg: (error as Error)?.message ?? "Error" } as LoginResponse;
+          return { ok: false, msg: errorMessage } as LoginResponse;
         }
       },
 

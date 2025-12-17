@@ -1,31 +1,33 @@
 import { FamilyApi } from "@/api/family.api";
-import type { OrdersResponse } from "@/interfaces/orders.response";
-import { isAxiosError } from "axios";
+import type { Order } from "@/interfaces/orders.interface";
 
-interface GetOrdersOptions {
-   page?: number;
-   limit?: number;
+interface OrdersResponse {
+   ok: boolean;
+   count: number;
+   orders: Order[];
+   totalPages: number;
+   currentPage: number;
+   totalOrders: number;
+}
+
+interface OrdersFilters {
    status?: string;
    date?: string;
    search?: string;
+   client?: string;
+   page?: number;
+   limit?: number;
 }
 
-export const getOrdersByAdmin = async ({ page = 1, limit = 10, status = '', date = '', search = '' }: GetOrdersOptions = {}): Promise<OrdersResponse> => {
-   try {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (status && status !== 'all') params.append('status', status);
-      if (date) params.append('date', date);
-      if (search) params.append('search', search);
+export const getOrdersByAdmin = async (filters: OrdersFilters = {}): Promise<OrdersResponse> => {
+   const params = new URLSearchParams();
+   if (filters.status) params.append('status', filters.status);
+   if (filters.date) params.append('date', filters.date);
+   if (filters.search) params.append('search', filters.search);
+   if (filters.client) params.append('client', filters.client);
+   if (filters.page) params.append('page', filters.page.toString());
+   if (filters.limit) params.append('limit', filters.limit.toString());
 
-      const { data } = await FamilyApi.get<OrdersResponse>(`/orders/admin/getOrders?${params.toString()}`);
-      return data;
-   } catch (error: any) {
-      if (isAxiosError(error)) {
-         console.log(error);
-         throw new Error(error.response?.data.msg || 'Error al obtener los pedidos');
-      }
-      throw new Error('Error al obtener los pedidos');
-   }
+   const { data } = await FamilyApi.get(`/orders/admin/getOrders?${params.toString()}`);
+   return data;
 }

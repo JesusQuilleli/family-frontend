@@ -1,69 +1,26 @@
-import { FamilyApi } from "@/api/family.api";
-import type { Order } from "@/interfaces/orders.interface";
-import { isAxiosError } from "axios";
+import { FamilyApi } from '@/api/family.api';
 
-export const approveOrder = async (id: string): Promise<Order> => {
-   try {
-      const { data } = await FamilyApi.put<{ ok: boolean, msg: string, pedido: Order }>(`/orders/admin/approve/${id}`);
-      return data.pedido;
-   } catch (error: any) {
-      console.log(error);
-      if (isAxiosError(error)) {
-         throw new Error(error.response?.data.msg || 'Error al aprobar el pedido');
-      }
-      throw new Error('Error al aprobar el pedido');
-   }
+export const approveOrder = async (id: string) => {
+   const { data } = await FamilyApi.post(`/orders/${id}/approve`);
+   return data;
 }
 
-export const rejectOrder = async (id: string, reason: string): Promise<Order> => {
-   try {
-      const { data } = await FamilyApi.put<{ ok: boolean, msg: string, order: Order }>(`/orders/admin/${id}/reject`, { reason });
-      return data.order;
-   } catch (error: any) {
-      console.log(error);
-      if (isAxiosError(error)) {
-         throw new Error(error.response?.data.msg || 'Error al rechazar el pedido');
-      }
-      throw new Error('Error al rechazar el pedido');
-   }
+export const rejectOrder = async (id: string, reason: string) => {
+   const { data } = await FamilyApi.post(`/orders/${id}/reject`, { reason });
+   return data;
 }
 
-export const cancelOrder = async (id: string, reason?: string): Promise<Order> => {
-   try {
-      const { data } = await FamilyApi.put<{ ok: boolean, msg: string, order: Order }>(`/orders/admin/${id}/cancel`, { reason });
-      return data.order;
-   } catch (error: any) {
-      if (isAxiosError(error)) {
-         throw new Error(error.response?.data.msg || 'Error al cancelar el pedido');
-      }
-      throw new Error('Error al cancelar el pedido');
-   }
+export const cancelOrder = async (id: string, reason: string) => {
+   const { data } = await FamilyApi.post(`/orders/${id}/cancel`, { reason });
+   return data;
 }
 
-export const updateOrderStatus = async (id: string, status: string): Promise<Order> => {
-   try {
-      const { data } = await FamilyApi.put<{ ok: boolean, msg: string, order: Order }>(`/orders/admin/${id}/status`, { status });
-      return data.order;
-   } catch (error: any) {
-      if (isAxiosError(error)) {
-         throw new Error(error.response?.data.msg || 'Error al actualizar el estado');
-      }
-      throw new Error('Error al actualizar el estado');
-   }
+export const updateOrderStatus = async (id: string, status: string) => {
+   const { data } = await FamilyApi.put(`/orders/${id}/status`, { status });
+   return data;
 }
 
-export const removeProductFromOrder = async (orderId: string, itemId: string): Promise<{ order?: Order, deleted?: boolean, msg?: string }> => {
-   try {
-      const { data } = await FamilyApi.delete<{ ok: boolean, msg: string, order?: Order, deleted?: boolean }>(`/orders/admin/${orderId}/product/${itemId}`);
-      if (data.deleted) {
-         return { deleted: true, msg: data.msg };
-      }
-      return { order: data.order };
-   } catch (error: any) {
-      if (isAxiosError(error)) {
-         throw new Error(error.response?.data.msg || 'Error al eliminar producto del pedido');
-      }
-      throw new Error('Error al eliminar producto del pedido');
-   }
+export const removeProductFromOrder = async (orderId: string, itemId: string) => {
+   const { data } = await FamilyApi.delete(`/orders/${orderId}/product/${itemId}`);
+   return data;
 }
-

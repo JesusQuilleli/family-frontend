@@ -13,8 +13,11 @@ import { SuperAdminVendorsPage } from "./superadmin/pages/SuperAdminVendorsPage"
 import { Navigate } from "react-router";
 import { AdminProductsPage } from "./admin/pages/products/AdminProductsPage";
 import { AdminOrdersPage } from "./admin/pages/orders/AdminOrdersPage";
+import { AdminOrderDetailsPage } from "./admin/pages/orders/AdminOrderDetailsPage";
 import { ClientProductsPage } from "./client/pages/products/ClientProductsPage";
 import { ClientOrdersPage } from "./client/pages/orders/ClientOrdersPage";
+import { ClientOrderDetailsPage } from "./client/pages/orders/ClientOrderDetailsPage";
+import { ClientOrderPaymentPage } from "./client/pages/payments/ClientOrderPaymentPage";
 import { ClientPaymentsPage } from "./client/pages/payments/ClientPaymentsPage";
 import { AdminCategoriesPage } from "./admin/pages/categories/AdminCategoriesPage";
 import { ClientProfilePage } from "./client/pages/profile/ClientProfilePage";
@@ -85,6 +88,14 @@ export const appRouter = createBrowserRouter([
         element: <ClientOrdersPage />
       },
       {
+        path: 'pedidos/:id',
+        element: <ClientOrderDetailsPage />
+      },
+      {
+        path: 'pedidos/:id/pagar',
+        element: <ClientOrderPaymentPage />
+      },
+      {
         path: 'pagos',
         element: <ClientPaymentsPage />
       },
@@ -128,6 +139,10 @@ export const appRouter = createBrowserRouter([
       {
         path: 'pedidos',
         element: <AdminOrdersPage />
+      },
+      {
+        path: 'pedidos/:id',
+        element: <AdminOrderDetailsPage />
       },
       {
         path: 'pagos',

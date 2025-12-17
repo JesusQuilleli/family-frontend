@@ -39,31 +39,61 @@ export const HomePageClient = () => {
       />
 
       {/* Hero / Promo Section */}
-      {/* Hero / Promo Section */}
-      <div className="relative overflow-hidden rounded-xl shadow-lg text-white min-h-[300px] flex items-center">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src="/banner.png"
-            alt="Banner Tienda"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50" /> {/* Overlay para legibilidad */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Banner Comprar */}
+        <div className="relative overflow-hidden rounded-xl shadow-lg text-white min-h-[300px] flex items-center">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <img
+              src="/banner.png"
+              alt="Banner Tienda"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+
+          <div className="relative z-10 p-8 sm:p-12 max-w-2xl">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+              Los mejores productos para ti.
+            </h2>
+            <p className="text-base sm:text-lg opacity-90 mb-6">
+              Descubre nuestra variedad y calidad al mejor precio.
+            </p>
+            <Link to="/client/productos">
+              <Button size="lg" className="font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90 border-none w-full sm:w-auto">
+                <ShoppingBag className="h-5 w-5" />
+                Ir a Comprar
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="relative z-10 p-8 sm:p-12 max-w-2xl">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Los mejores productos en un solo lugar.
-          </h2>
-          <p className="text-lg opacity-90 mb-6">
-            Encuentra lo que buscas en nuestra tienda. Descubre la mejor calidad y precios.
-          </p>
-          <Link to="/client/productos">
-            <Button size="lg" className="font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90 border-none">
-              <ShoppingBag className="h-5 w-5" />
-              Ir a Comprar
-            </Button>
-          </Link>
+        {/* Banner Pagar */}
+        <div className="relative overflow-hidden rounded-xl shadow-lg text-white min-h-[300px] flex items-center bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+
+          <div className="relative z-10 p-8 sm:p-12 max-w-2xl w-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-medium mb-4 backdrop-blur-sm border border-white/10">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Estado de Cuenta
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+              Mantén tus cuentas al día
+            </h2>
+            <p className="text-base sm:text-lg opacity-90 mb-6">
+              Revisa el estado de tus pedidos y realiza tus pagos pendientes de forma sencilla.
+            </p>
+            <Link to="/client/pedidos">
+              <Button size="lg" variant="secondary" className="font-semibold gap-2 w-full sm:w-auto hover:bg-white/90">
+                <CreditCard className="h-5 w-5" />
+                Ir a Pagar
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

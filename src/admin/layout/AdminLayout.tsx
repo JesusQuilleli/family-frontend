@@ -6,7 +6,10 @@ import { MobileHeader } from "@/components/MobileHeader"
 
 import { NotificationDropdown } from "@/client/components/notifications/NotificationDropdown";
 
+import { useSocketNotifications } from "@/hooks/useSocketNotifications";
+
 export const AdminLayout = () => {
+  useSocketNotifications();
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">

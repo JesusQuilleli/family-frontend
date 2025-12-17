@@ -2,31 +2,43 @@ import { useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 export const useSocketNotifications = () => {
    const { socket } = useSocket();
    const queryClient = useQueryClient();
+   const navigate = useNavigate();
 
    useEffect(() => {
       if (!socket) return;
 
       // Listeners
-      socket.on('new-payment', (data: { title: string, message: string }) => {
+      socket.on('new-payment', (data: { title: string, message: string, paymentId: string, orderId?: string }) => {
          //console.log('🔔 Socket Event Received: new-payment', data);
          toast.info(data.title, {
             description: data.message,
             duration: 5000,
+            action: data.orderId ? {
+               label: 'Ver Pedido',
+               onClick: () => navigate(`/admin/pedidos/${data.orderId}`)
+            } : undefined
          });
          queryClient.invalidateQueries({ queryKey: ['notifications'] });
       });
 
-      socket.on('new-order', (data: { title: string, message: string }) => {
+      socket.on('new-order', (data: { title: string, message: string, orderId?: string }) => {
          //console.log('🔔 Socket Event Received: new-order', data);
          toast.info(data.title, {
             description: data.message,
             duration: 5000,
+            action: data.orderId ? {
+               label: 'Ver Pedido',
+               onClick: () => navigate(`/admin/pedidos/${data.orderId}`)
+            } : undefined
          });
          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+         queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+         queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
       });
 
       socket.on('payment-updated', (data: { title: string, message: string, status: string }) => {
@@ -39,13 +51,18 @@ export const useSocketNotifications = () => {
          queryClient.invalidateQueries({ queryKey: ['notifications'] });
       });
 
-      socket.on('order-updated', (data: { title: string, message: string, status: string }) => {
+      socket.on('order-updated', (data: { title: string, message: string, status: string, orderId?: string }) => {
          //console.log('🔔 Socket Event Received: order-updated', data);
          toast.info(data.title, {
             description: data.message,
             duration: 5000,
+            action: data.orderId ? {
+               label: 'Ver Pedido',
+               onClick: () => navigate(data.title.includes('Cancelado') || data.title.includes('Rechazado') ? `/client/pedidos` : `/client/pedidos/${data.orderId}`)
+            } : undefined
          });
          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+         queryClient.invalidateQueries({ queryKey: ['user-orders'] }); // Refresh client list
       });
 
       socket.on('payment-reminder', (data: any) => {
@@ -70,6 +87,10 @@ export const useSocketNotifications = () => {
                </div>
             ),
             duration: 10000,
+            action: data.orderId ? {
+               label: 'Ir a Pagar',
+               onClick: () => navigate(`/client/pedidos/${data.orderId}/pagar`)
+            } : undefined
          });
          queryClient.invalidateQueries({ queryKey: ['notifications'] });
       });
@@ -91,5 +112,5 @@ export const useSocketNotifications = () => {
          socket.off('payment-reminder');
          socket.off('new-notification');
       };
-   }, [socket]);
+   }, [socket, navigate, queryClient]);
 };

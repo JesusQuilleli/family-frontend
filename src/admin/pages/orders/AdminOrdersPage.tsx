@@ -99,6 +99,11 @@ export const AdminOrdersPage = () => {
     return () => clearTimeout(timer);
   }, [searchId]);
 
+  // Scroll to top on page or filter change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page, filterStatus, filterDate, debouncedSearchId]);
+
 
   const { data: ordersData, isLoading, isError } = useQuery({
     queryKey: ['admin-orders', page, filterStatus, filterDate, debouncedSearchId],
@@ -440,7 +445,7 @@ export const AdminOrdersPage = () => {
 
           <Input
             type="text"
-            placeholder="Buscar por ID..."
+            placeholder="Buscar por ID o Nombre..."
             value={searchId}
             onChange={(e) => { setSearchId(e.target.value); setPage(1); }}
             className="w-[200px]"

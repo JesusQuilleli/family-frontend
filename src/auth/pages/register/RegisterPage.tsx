@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { CustomFullScreenLoading } from "@/components/custom/CustomFullScreenLoading";
 import { useAuthRedirect } from "@/auth/hook/useAuth";
 import { validateReferralCodeAction } from "@/auth/actions/validate-referral";
-import { Info } from "lucide-react";
+import { Info, Eye, EyeOff, Loader2 } from "lucide-react";
 import { CountryCodeSelector } from "@/components/ui/country-code-selector";
 
 
@@ -25,6 +25,8 @@ export const RegisterPage = () => {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [adminName, setAdminName] = useState<string | null>(null);
   const [countryCode, setCountryCode] = useState("+58");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -92,7 +94,7 @@ export const RegisterPage = () => {
   return (
     <>
 
-      {(isLoading || isValidating) && (
+      {isValidating && (
         <CustomFullScreenLoading />
       )}
 
@@ -149,31 +151,65 @@ export const RegisterPage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">Contraseña</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        placeholder="••••••••"
-                        required
-                        className="transition-all duration-200 focus:scale-[1.01]"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          placeholder="••••••••"
+                          required
+                          className="transition-all duration-200 focus:scale-[1.01] pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="••••••••"
-                        required
-                        className="transition-all duration-200 focus:scale-[1.01]"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          placeholder="••••••••"
+                          required
+                          className="transition-all duration-200 focus:scale-[1.01] pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Button
                       type="submit"
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                      disabled={isLoading}
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Registrarse
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creando cuenta...
+                        </>
+                      ) : (
+                        "Registrarse"
+                      )}
                     </Button>
                   </form>
                 </>

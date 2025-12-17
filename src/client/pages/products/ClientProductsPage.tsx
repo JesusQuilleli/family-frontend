@@ -15,6 +15,9 @@ import { useCategories } from '@/hooks/useCategories';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import type { ProductBackend } from '@/interfaces/products.response';
+import { getOrdersAction } from '@/client/actions/orders/get-orders';
+import { CreditCard } from 'lucide-react';
+import { Link } from 'react-router';
 
 export const ClientProductsPage = () => {
   const [searchParams] = useSearchParams();
@@ -41,6 +44,15 @@ export const ClientProductsPage = () => {
   });
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useCategories();
+
+  // Query for pending payments
+  const { data: pendingOrdersData } = useQuery({
+    queryKey: ['client-pending-orders'],
+    queryFn: () => getOrdersAction({ status: 'por pagar', limit: 1 }),
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  const hasPendingPayments = pendingOrdersData?.orders && pendingOrdersData.orders.length > 0;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -117,6 +129,25 @@ export const ClientProductsPage = () => {
           </div>
         </div>
       </header>
+
+      {/* Payment Reminder Banner */}
+      {hasPendingPayments && (
+        <div className="bg-blue-600 text-white px-4 py-3 shadow-md animate-in slide-in-from-top duration-300 relative z-9">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 animate-pulse" />
+              <p className="font-medium text-sm sm:text-base">
+                Tienes pedidos pendientes de pago. ¡Completa tu compra ahora!
+              </p>
+            </div>
+            <Link to="/client/pedidos">
+              <Button size="sm" variant="secondary" className="whitespace-nowrap font-semibold text-blue-700 hover:bg-white">
+                Ir a Pagar
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <Search

@@ -5,7 +5,10 @@ import { MobileHeader } from "@/components/MobileHeader"
 import { Bell } from "lucide-react"
 
 
+import { useSocketNotifications } from "@/hooks/useSocketNotifications";
+
 export const ClientLayout = () => {
+  useSocketNotifications();
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">

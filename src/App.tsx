@@ -6,13 +6,13 @@ import { useAuthStore } from "./auth/store/auth.store";
 import { useEffect, useState } from "react";
 import { checkBackendHealth } from "./api/family.api";
 import { ServerWakeUp } from "./components/ui/server-wake-up";
-import { useSocketNotifications } from "./hooks/useSocketNotifications.tsx";
+//import { useSocketNotifications } from "./hooks/useSocketNotifications.tsx";
 
 export const App = () => {
   const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
   const [isServerWakingUp, setIsServerWakingUp] = useState(false);
 
-  useSocketNotifications();
+  // useSocketNotifications(); // Moved to layouts to access Router context
 
   useEffect(() => {
     checkAuthStatus();
