@@ -351,7 +351,58 @@ export const AdminOrdersPage = () => {
         {(order.status === 'pendiente' || order.status === 'por pagar' || order.status === 'abonado') && order.client_uid?.phone && (
           <DropdownMenuItem onClick={() => {
             const phone = (order.client_uid?.phone || '').replace(/\D/g, '');
-            const message = `Hola ${order.client_uid?.name || 'Cliente'}, te recordamos que tienes el pedido #${order._id.slice(-6)} pendiente por pagar. Monto pendiente: ${order.remaining > 0 ? order.remaining : order.total}. Por favor reporta tu pago ingresando a https://familyapp.shop-mg.com/.`;
+            const clientName = order.client_uid?.name || 'Cliente';
+            const shopName = order.admin_uid?.name?.toUpperCase() || 'MIRAJE SHOP';
+
+            const pendingAmount = order.remaining > 0 ? order.remaining : order.total;
+            const adminPref = order.admin_uid?.adminViewPreference || 'USD_TO_BS';
+            const tasaCopToBs = order.admin_uid?.tasaCopToBs || 1;
+            const paymentConfig = order.admin_uid?.payment_config;
+
+            const formatCurrency = (amount: number, currency: string) => {
+              return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: currency,
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(amount);
+            };
+
+            const formatBs = (amount: number) => {
+              return new Intl.NumberFormat('es-VE', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }).format(amount);
+            };
+
+            let amountSection = '';
+            if (adminPref === 'COP_TO_BS') {
+              const amountBs = pendingAmount * tasaCopToBs;
+              amountSection = `💰 Tienes un monto pendiente de ${formatCurrency(pendingAmount, 'COP')} pesos\n\n📈 Monto: ${formatBs(amountBs)} bs a tasa ${tasaCopToBs}`;
+            } else {
+              // Default or other preferences
+              amountSection = `💰 Tienes un monto pendiente de ${formatCurrency(pendingAmount, 'USD')} (USD)`;
+            }
+
+            const paymentSection = paymentConfig ? `
+💳 Para realizar tú ABONO :
+
+🛂 Cédula: ${paymentConfig.identification}
+🏦 Banco: ${paymentConfig.bank_name}
+📱 Teléfono: ${paymentConfig.phone}
+`.trim() : '';
+
+            const message = `
+Hola ${clientName}, ¡Soy ${shopName}!👋
+
+${amountSection}
+
+${paymentSection}
+
+¡Gracias! 😊
+`.trim();
+
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
           }}>
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">

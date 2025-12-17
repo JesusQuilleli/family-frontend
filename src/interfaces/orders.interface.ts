@@ -3,6 +3,19 @@ export interface OrderUser {
    name: string;
    email: string;
    phone?: string;
+   clientCurrency?: string;
+   tasaBs?: number;
+   tasaPesos?: number;
+   tasaCopToBs?: number;
+   adminViewPreference?: string;
+   payment_config?: {
+      bank_name: string;
+      account_number: string;
+      account_type: string;
+      phone: string;
+      identification: string;
+      instructions: string;
+   };
 }
 
 export interface OrderProductItem {

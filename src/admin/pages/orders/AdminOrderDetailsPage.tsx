@@ -72,7 +72,7 @@ export const AdminOrderDetailsPage = () => {
    // Payment verification actions
    const verifyPaymentMutation = useMutation({
       mutationFn: async (paymentId: string) => {
-         const { data } = await FamilyApi.post(`/payments/${paymentId}/verify`);
+         const { data } = await FamilyApi.put(`/payments/${paymentId}/verify`);
          return data;
       },
       onSuccess: () => {
@@ -85,7 +85,7 @@ export const AdminOrderDetailsPage = () => {
 
    const rejectPaymentMutation = useMutation({
       mutationFn: async ({ paymentId, reason }: { paymentId: string, reason: string }) => {
-         const { data } = await FamilyApi.post(`/payments/${paymentId}/reject`, { reason });
+         const { data } = await FamilyApi.put(`/payments/${paymentId}/reject`, { reason });
          return data;
       },
       onSuccess: () => {
